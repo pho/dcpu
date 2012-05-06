@@ -67,8 +67,17 @@ class DCPU:
 	def IFE(self, a, b):
 		print("IFE")
 
+	def IFL(self, a, b):
+		print("IFL")
+
+	def IFA(self, a, b):
+		print("IFA")
+
 	def IFN(self, a, b):
 		print("IFN")
+
+	def IFU(self, a, b):
+		print("IFU")
 
 	def IFG(self, a, b):
 		print("IFG")
@@ -76,12 +85,49 @@ class DCPU:
 	def IFB(self, a, b):
 		print("IFB")
 
+	def ADX(self, a, b):
+		print("ADX")
+
 	def ASR(self, a, b):
-		print("DIV")
+		print("ASR")
 
 	def IFC(self, a, b):
-		print("DIV")
+		print("IFC")
 
+	def SBX(self, a, b):
+		print("IFC")
+	
+	def STI(self, a, b):
+		print("IFC")
+
+	def STD(self, a, b):
+		print("IFC")
+
+
+
+	def INT(self, a, b):
+		print("IFC")
+
+	def IAG(self, a, b):
+		print("IFC")
+
+	def IAS(self, a, b):
+		print("IFC")
+
+	def RFI(self, a, b):
+		print("IFC")
+
+	def IAQ(self, a, b):
+		print("IFC")
+
+	def HWN(self, a):
+		print("JSR", a)
+
+	def HWQ(self, a):
+		print("JSR", a)
+
+	def HWI(self, a):
+		print("JSR", a)
 
 	def JSR(self, a):
 		print("JSR", a)
@@ -188,14 +234,17 @@ class DCPU:
 			else:
 					print("OPCODE DOESNT EXISTS:", hex(o))
 
-	def POP(self):
+	def PPOP(self):#TODO
 		self.SP += 0x0001
 		return self.ram[self.SP]
 
-	def PUSH(self, v):
+	def PEEK(self, v):#TODO
 		self.ram[self.SP] = v
 		self.SP -= 0x0001
 		return self.ram[self.SP]
+
+	def PICK(self):
+		pass
 
 	def PCpp(self):
 		self.PC += 0x0001
@@ -226,16 +275,20 @@ class DCPU:
 
 	def ejec(self, i):
 		(o, a, b) = self.decode(i)
-		print "OPCODE:", hex(o)
+		print( "OPCODE:", hex(o))
 		self.opcodes[o](a, b)
 
-	def dumpmem(self):
-		length = 80 #len(self.ram)
+	def dumpram(self, i=None):
+		print("### RAM DUMP ###")
+		if i == None:
+			length = len(self.ram)
+		else: 
+			length = i
 		for i in range(0, length, 8):
-			print hex(i),":",
+			print( "{0:>8}:".format(hex(i)), end="" )
 			for j in range(0, 8):
-				 print hex(self.ram[i+j]),
-			print
+				print( "{0:>6} ".format(hex(self.ram[i+j])), end="")
+			print()
 
 	#TODO
 	def setram(buf):
@@ -248,9 +301,10 @@ if len(sys.argv) > 1:
 	ins = sys.argv[1:]
 else:
 	ins = [0x0411, 0x0412]
+
 for i in ins:
-	print "Parametro:", i
+	print ("Parameter: {}".format(i))
 	cpu.ejec(int(str(i), 16))
-cpu.dumpmem()
+cpu.dumpram(200)
 	
 
