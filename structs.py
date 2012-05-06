@@ -14,8 +14,8 @@ class DCPU:
 
 	def SET(self, a, b):
 		print("SET", hex(a), hex(b))
-		v1 = resolve(a)
-		v2 = resolve(b)
+		v1 = self.resolve(a)
+		v2 = self.resolve(b)
 
 		self.ram[v1] = v2
 		self.PCpp
@@ -23,22 +23,31 @@ class DCPU:
 	def ADD(self, a, b):
 		print("ADD", hex(a), hex(b))
 		if a == 0xffff:
-			O = 0x0001
+			EX = 0x0001
 		else:
-			O = 0x0000
+			EX = 0x0000
 		self.ram[a] = (self.ram[a] + b) % 0xffff
 
 	def SUB(self, a, b):
 		print("SUB")
-
+	
 	def MUL(self, a, b):
 		print("MUL")
+
+	def MLI(self, a, b):
+		print("MLI")
 
 	def DIV(self, a, b):
 		print("DIV")
 
+	def DVI(self, a, b):
+		print("DVI")
+
 	def MOD(self, a, b):
 		print("MOD")
+
+	def MDI(self, a, b):
+		print("DIV")
 
 	def SHL(self, a, b):
 		print("SHL")
@@ -67,6 +76,13 @@ class DCPU:
 	def IFB(self, a, b):
 		print("IFB")
 
+	def ASR(self, a, b):
+		print("DIV")
+
+	def IFC(self, a, b):
+		print("DIV")
+
+
 	def JSR(self, a):
 		print("JSR", a)
 
@@ -75,71 +91,97 @@ class DCPU:
 		self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
 			0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 
-		self.PC, self.SP, self.O = \
-			0x0000,0x0000,0x0000
+		self.PC, self.SP, self.EX, self.IA = \
+			0x0000,0x0000,0x0000, 0x0000
 
 
 		
-		self.opcodes = { 0x0 : self.nonbasic,
-					0x1 : self.SET,
-					0x2	: self.ADD,
-					0x3 : self.SUB,
-					0x4 : self.MUL,
-					0x5 : self.DIV,
-					0x6 : self.MOD,
-					0x7 : self.SHL,
-					0x8 : self.SHR,
-					0x9 : self.AND,
-					0xa : self.BOR,
-					0xb : self.XOR,
-					0xc : self.IFE,
-					0xd : self.IFN,
-					0xe : self.IFG,
-					0xf : self.IFB
-					}
+		self.opcodes = {0x0 : self.sopcode,
+						0x1 : self.SET,
+						0x2 : self.ADD,
+						0x3 : self.SUB,
+						0x4 : self.MUL,
+						0x5 : self.MLI,
+						0x6 : self.DIV,
+						0x7 : self.DVI,
+						0x8 : self.MOD,
+						0x9 : self.MDI,
+						0xa : self.AND,
+						0xb : self.BOR,
+						0xc : self.XOR,
+						0xd : self.SHR,
+						0xe : self.ASR,
+						0xf : self.SHL,
+						0x10: self.IFB,
+						0x11: self.IFC,
+						0x12: self.IFE,
+						0x13: self.IFN,
+						0x14: self.IFG,
+						0x15: self.IFA,
+						0x16: self.IFL,
+						0x17: self.IFU,
+
+						0x1a: self.ADX,
+						0x1b: self.SBX,
+						
+						0x1e: self.STI,
+						0x1f: self.STD
+				}
 
 
 
-		self.nbopcodes = {
-						0x01 : self.JSR,
-					}
+		self.sopcodes = {  0x01 : self.JSR,
+
+						   0x08 : self.INT,
+						   0x09 : self.IAG,
+						   0x0a : self.IAS,
+						   0x0b : self.RFI,
+						   
+						   0x0c : self.IAQ,
+
+						   0x10 : self.HWN,
+						   0x11 : self.HWQ,
+
+						   0x12 : self.HWI,
+						}
 
 
 
 		self.values = {
-				0x00 : self.A,
-				0x01 : self.B,
-				0x02 : self.C,
-				0x03 : self.X,
-				0x04 : self.Y,
-				0x05 : self.Z,
-				0x06 : self.I,
-				0x07 : self.J,
-				0x08 : self.ram[self.A],
-				0x09 : self.ram[self.B],
-				0x0a : self.ram[self.C],
-				0x0b : self.ram[self.X],
-				0x0c : self.ram[self.Y],
-				0x0c : self.ram[self.Z],
-				0x0e : self.ram[self.I],
-				0x0f : self.ram[self.J],
-				#TODO
-				0x18 : self.POP,
-				0x19 : self.ramSP,
-				0x1a : self.PUSH,
-				0x1b : self.SP,
-				0x1c : self.PC,
-				0x1d : self.O,
-				0x1e : self.ramPCpp,
-				0x1f : self.PCpp
-				#TODO
-				}
+						0x00 : self.A,
+						0x01 : self.B,
+						0x02 : self.C,
+						0x03 : self.X,
+						0x04 : self.Y,
+						0x05 : self.Z,
+						0x06 : self.I,
+						0x07 : self.J,
+						0x08 : self.ram[self.A],
+						0x09 : self.ram[self.B],
+						0x0a : self.ram[self.C],
+						0x0b : self.ram[self.X],
+						0x0c : self.ram[self.Y],
+						0x0c : self.ram[self.Z],
+						0x0e : self.ram[self.I],
+						0x0f : self.ram[self.J],
+						#TODO
+						0x18 : self.PPOP,
+						0x19 : self.PEEK,
+						0x1a : self.PICK,
+						0x1b : self.SP,
+						0x1c : self.PC,
+						0x1d : self.EX,
+						0x1e : self.ramPCpp,
+						0x1f : self.PCpp
+
+						#0x20-0x3f is treated as exception
+					}
 
 
-	def nonbasic(self, o, a):
-		print("NONBASIC", hex(a))
+	def sopcode(self, o, a):
+		print("SPECIALOP", hex(a))
 		try:
-			self.nbopcodes[o](a)
+			self.sopcodes[o](a)
 		except (KeyError):
 			if o >= 0x02 and o <=0x3f:
 					print("RESERVED OPCODE:", hex(o))
@@ -175,9 +217,10 @@ class DCPU:
 			return a
 
 	def decode(self, i):
-		opcode = i & 0x000f
-		a = (i>>4) & 0x3f
-		b = i>>10
+		# aaaaaabbbbbooooo
+		opcode = i & 0x001f
+		b = (i>>5) & 0x1f
+		a = i>>10
 
 		return (opcode, a, b)
 
