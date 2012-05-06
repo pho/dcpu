@@ -1,14 +1,4 @@
-import sys
-
-class Register:
-	def __init__(self):
-		self.value = 0x0000
-
-	def __call__(self):
-		return self.value
-
-	def __set__(self, a):
-		self.value = a
+import sys, types
 
 class DCPU:
 
@@ -103,7 +93,7 @@ class DCPU:
 	def STD(self, a, b):
 		print("IFC")
 
-
+## SOPCODES
 
 	def INT(self, a, b):
 		print("IFC")
@@ -132,6 +122,9 @@ class DCPU:
 	def JSR(self, a):
 		print("JSR", a)
 
+
+
+## 
 	def __init__(self):
 		self.ram = [0x0000] * 65535
 		self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
@@ -234,17 +227,21 @@ class DCPU:
 			else:
 					print("OPCODE DOESNT EXISTS:", hex(o))
 
-	def PPOP(self):#TODO
-		self.SP += 0x0001
-		return self.ram[self.SP]
+	def PPOP(self, field):#TODO
+		if field == 'a': #POP
+			self.SP -= 0x0001
+			return self.ram[self.SP]
 
-	def PEEK(self, v):#TODO
-		self.ram[self.SP] = v
-		self.SP -= 0x0001
+		else: 			 #PUSH
+			self.SP += 0x0001
+			return self.ram[self.SP]
+
+
+	def PEEK(self):
 		return self.ram[self.SP]
 
 	def PICK(self):
-		pass
+		return self.ram[ self.SP + self.PCpp() ]
 
 	def PCpp(self):
 		self.PC += 0x0001
@@ -260,7 +257,7 @@ class DCPU:
 
 ####
 	def resolve(self, a):
-		if a > 0x18:
+		if isinstance(a, types.FunctionType):
 			return a()
 		else:
 			return a
@@ -278,33 +275,41 @@ class DCPU:
 		print( "OPCODE:", hex(o))
 		self.opcodes[o](a, b)
 
-	def dumpram(self, i=None):
-		print("### RAM DUMP ###")
+	def dumpRam(self, i=None):
+		print("\n ## RAM DUMP #######################################################")
 		if i == None:
 			length = len(self.ram)
 		else: 
 			length = i
 		for i in range(0, length, 8):
-			print( "{0:>8}:".format(hex(i)), end="" )
+			print( "{0:>8}: ".format(hex(i)), end="" )
 			for j in range(0, 8):
 				print( "{0:>6} ".format(hex(self.ram[i+j])), end="")
 			print()
+		print(" ###################################################################\n")
 
-	#TODO
-	def setram(buf):
-		pass
-	def setPC(add):
-		pass
+	def setRam(self, buf):
+		for i in range(0, len(buf)):
+			self.ram[i] = buf[i]
+	
+	def dumpReg(self):
+		print("\n ## REGISTERS ######################################################")
+		print("   A: {:>3}  B: {:>3}  C: {:>3}  X: {:>3} Y: {:>3} Z: {:>3} I: {:>3} J: {:>3}".format(\
+				self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J))
+		print("  PC: {:3} SP: {:3} EX: {:3} IA: {:3}".format(\
+				self.PC, self.SP, self.EX, self.IA))
+		print(" ###################################################################")
 
 cpu = DCPU()
 if len(sys.argv) > 1:
 	ins = sys.argv[1:]
 else:
 	ins = [0x0411, 0x0412]
-
+cpu.setRam([0x1111, 0x2222, 0x1234])
 for i in ins:
 	print ("Parameter: {}".format(i))
 	cpu.ejec(int(str(i), 16))
-cpu.dumpram(200)
+cpu.dumpReg()
+cpu.dumpRam(80)
 	
 
