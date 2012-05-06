@@ -7,7 +7,7 @@ class DCPU:
 		v1 = self.resolve(a, 'a')
 		v2 = self.resolve(b, 'b')
 
-		self.ram[v1] = v2
+		v1 = v2
 		self.PCpp
 
 	def ADD(self, a, b):
@@ -273,6 +273,9 @@ class DCPU:
 	def decode(self, i):
 		# aaaaaabbbbbooooo
 		opcode = i & 0x001f
+		print("opcode:", hex(opcode))
+		print("i>>5:", hex(i>>5))
+		print("i>>10:", hex(i>>10))
 		b = (i>>5) & 0x1f
 		a = i>>10
 

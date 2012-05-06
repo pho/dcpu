@@ -93,6 +93,6 @@ def assembly(buf):
 			print("WRONG INSTRUCTION")
 			return None
 
-		return hex((((a<<6) + b)<<5) + o)
+		return hex((((a<<5) + b)<<5) + o)
 
-print(assembly("SET A SP"))
+print(assembly("SET A PC"))
