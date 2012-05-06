@@ -131,7 +131,7 @@ class DCPU:
 			0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 
 		self.PC, self.SP, self.EX, self.IA = \
-			0x0000,0x0000,0x0000, 0x0000
+			0x1234,0x5678,0x0000, 0x0000
 
 
 		
@@ -256,8 +256,8 @@ class DCPU:
 
 
 ####
-	def resolve(self, a, args=None):
-		if a in values.keys():
+	def resolve(self, a, args=None): #TODO Check this..
+		if a in self.values.keys():
 			if isinstance(self.values[a], types.FunctionType):
 				if args == None:
 					return self.values[a]()
@@ -266,8 +266,9 @@ class DCPU:
 			else:
 				return self.values[a]
 		else:
-			print("INVALID PARAMETER")
-			print("You are on your own...")
+			print("\n\nINVALID PARAMETER")
+			print("You are on your own...\n\n")
+
 
 	def decode(self, i):
 		# aaaaaabbbbbooooo
@@ -301,10 +302,10 @@ class DCPU:
 	
 	def dumpReg(self):
 		print("\n ## REGISTERS ######################################################")
-		print("   A: {:>3}  B: {:>3}  C: {:>3}  X: {:>3} Y: {:>3} Z: {:>3} I: {:>3} J: {:>3}".format(\
-				self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J))
-		print("  PC: {:3} SP: {:3} EX: {:3} IA: {:3}".format(\
-				self.PC, self.SP, self.EX, self.IA))
+		print("  A: {:>6}  B: {:>6}  C: {:>6}  X: {:>6}  Y: {:>6}  Z: {:>6} ".format(\
+				hex(self.A), hex(self.B), hex(self.C), hex(self.X), hex(self.Y), hex(self.Z), ))
+		print("  I: {:>6}  J: {:>6} PC: {:>6} SP: {:>6} EX: {:>6} IA: {:>6}".format(\
+				hex(self.I), hex(self.J), hex(self.PC), hex(self.SP), hex(self.EX), hex(self.IA)))
 		print(" ###################################################################")
 
 cpu = DCPU()
@@ -314,7 +315,7 @@ else:
 	ins = [0x0411, 0x0412]
 cpu.setRam([0x1111, 0x2222, 0x1234])
 for i in ins:
-	print ("Parameter: {}".format(i))
+	print ("Parameter: {}".format(hex(int(i, 16))))
 	cpu.ejec(int(str(i), 16))
 cpu.dumpReg()
 cpu.dumpRam(80)
