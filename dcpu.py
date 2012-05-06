@@ -4,8 +4,8 @@ class DCPU:
 
 	def SET(self, a, b):
 		print("SET", hex(a), hex(b))
-		v1 = self.resolve(a)
-		v2 = self.resolve(b)
+		v1 = self.resolve(a, 'a')
+		v2 = self.resolve(b, 'b')
 
 		self.ram[v1] = v2
 		self.PCpp
@@ -227,7 +227,7 @@ class DCPU:
 			else:
 					print("OPCODE DOESNT EXISTS:", hex(o))
 
-	def PPOP(self, field):#TODO
+	def PPOP(self, field):
 		if field == 'a': #POP
 			self.SP -= 0x0001
 			return self.ram[self.SP]
@@ -256,11 +256,18 @@ class DCPU:
 
 
 ####
-	def resolve(self, a):
-		if isinstance(a, types.FunctionType):
-			return a()
+	def resolve(self, a, args=None):
+		if a in values.keys():
+			if isinstance(self.values[a], types.FunctionType):
+				if args == None:
+					return self.values[a]()
+				else:
+					return self.values[a](args)
+			else:
+				return self.values[a]
 		else:
-			return a
+			print("INVALID PARAMETER")
+			print("You are on your own...")
 
 	def decode(self, i):
 		# aaaaaabbbbbooooo
@@ -272,7 +279,7 @@ class DCPU:
 
 	def ejec(self, i):
 		(o, a, b) = self.decode(i)
-		print( "OPCODE:", hex(o))
+		print( "OPCODE: ", hex(o))
 		self.opcodes[o](a, b)
 
 	def dumpRam(self, i=None):
