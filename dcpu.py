@@ -1,13 +1,20 @@
 import sys, types
 
+class Cell(int):
+	def __init__(self, i=0x0000):
+		self.value = i
+	def __call__(self, arg=None):
+		if arg == None:
+			return self.value
+		else:
+			print(self.value, "-->", arg)
+			self.value = arg
+
 class DCPU:
 
 	def SET(self, a, b):
 		print("SET", hex(a), hex(b))
-		v1 = self.resolve(a, 'a')
-		v2 = self.resolve(b, 'b')
-
-		v1 = v2
+		self.resolve(a, 'a')( self.resolve(b, 'b')())
 		self.PCpp
 
 	def ADD(self, a, b):
@@ -126,12 +133,12 @@ class DCPU:
 
 ## 
 	def __init__(self):
-		self.ram = [0x0000] * 65535
+		self.ram = [Cell()] * 65535
 		self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
-			0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
+			Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
 
 		self.PC, self.SP, self.EX, self.IA = \
-			0x1234,0x5678,0x0000, 0x0000
+			Cell(0x1234),Cell(0x0001),Cell(0x0000), Cell(0x0000)
 
 
 		
@@ -229,30 +236,30 @@ class DCPU:
 
 	def PPOP(self, field):
 		if field == 'a': #POP
-			self.SP -= 0x0001
-			return self.ram[self.SP]
+			self.SP(self.SP()  - 0x0001)
+			return self.ram[self.SP()]()
 
 		else: 			 #PUSH
-			self.SP += 0x0001
-			return self.ram[self.SP]
+			self.SP(self.SP()  + 0x0001)
+			return self.ram[self.SP()]()
 
 
 	def PEEK(self):
-		return self.ram[self.SP]
+		return self.ram[self.SP()]()
 
 	def PICK(self):
-		return self.ram[ self.SP + self.PCpp() ]
+		return self.ram[ self.SP() + self.PCpp() ]()
 
 	def PCpp(self):
-		self.PC += 0x0001
-		return self.PC
+		self.PC( self.PC() + 0x0001)
+		return self.PC()
 		
 	def ramSP(self):
-		return self.ram[self.SP]
+		return self.ram[self.SP()]()
 
 	def ramPCpp(self):
 		self.PCpp()
-		return self.ram[self.PC]
+		return self.ram[self.PC()]()
 
 
 ####
