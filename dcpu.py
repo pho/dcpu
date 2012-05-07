@@ -1,3 +1,4 @@
+#!/usr/bin/python3.2
 import sys, types
 
 class Cell(int):
@@ -10,12 +11,113 @@ class Cell(int):
 			print(self.value, "-->", arg)
 			self.value = arg
 
+ram = [0x0000] * 65535
+A, B, C, X, Y, Z, I, J = \
+	0x0002,0x0008,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
+
+PC, SP, EX, IA = \
+	0x1234,0x0001,0x0000, 0x0000
+
 class DCPU:
 
+	def __init__(self):
+		global ram
+		global A
+		global B
+	#	self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
+	#		Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
+
+	#	self.PC, self.SP, self.EX, self.IA = \
+	#		Cell(0x1234),Cell(0x0001),Cell(0x0000), Cell(0x0000)
+		
+		self.opcodes = {0x0 : self.sopcode,
+						0x1 : self.SET,
+						0x2 : self.ADD,
+						0x3 : self.SUB,
+						0x4 : self.MUL,
+						0x5 : self.MLI,
+						0x6 : self.DIV,
+						0x7 : self.DVI,
+						0x8 : self.MOD,
+						0x9 : self.MDI,
+						0xa : self.AND,
+						0xb : self.BOR,
+						0xc : self.XOR,
+						0xd : self.SHR,
+						0xe : self.ASR,
+						0xf : self.SHL,
+						0x10: self.IFB,
+						0x11: self.IFC,
+						0x12: self.IFE,
+						0x13: self.IFN,
+						0x14: self.IFG,
+						0x15: self.IFA,
+						0x16: self.IFL,
+						0x17: self.IFU,
+
+						0x1a: self.ADX,
+						0x1b: self.SBX,
+						
+						0x1e: self.STI,
+						0x1f: self.STD
+				}
+
+
+
+		self.sopcodes = {  0x01 : self.JSR,
+
+						   0x08 : self.INT,
+						   0x09 : self.IAG,
+						   0x0a : self.IAS,
+						   0x0b : self.RFI,
+						   
+						   0x0c : self.IAQ,
+
+						   0x10 : self.HWN,
+						   0x11 : self.HWQ,
+
+						   0x12 : self.HWI,
+						}
+
+
+
+		self.values = {
+						0x00 : A,
+						0x01 : B,
+						0x02 : C,
+						0x03 : X,
+						0x04 : Y,
+						0x05 : Z,
+						0x06 : I,
+						0x07 : J,
+						0x08 : ram[A],
+						0x09 : ram[B],
+						0x0a : ram[C],
+						0x0b : ram[X],
+						0x0c : ram[Y],
+						0x0c : ram[Z],
+						0x0e : ram[I],
+						0x0f : ram[J],
+						#TODO
+						0x18 : self.PPOP,
+						0x19 : self.PEEK,
+						0x1a : self.PICK,
+						0x1b : SP,
+						0x1c : PC,
+						0x1d : EX,
+						0x1e : self.ramPCpp,
+						0x1f : self.PCpp
+
+						#0x20-0x3f is treated as exception
+					}
+
 	def SET(self, a, b):
+		global A
+		A += 0x1
 		print("SET", hex(a), hex(b))
-		self.resolve(a, 'a')( self.resolve(b, 'b')())
-		self.PCpp
+		#(self.resolve(a, 'a')) = self.resolve(b, 'b')
+		self.PCpp()
+		ram[10] = 0xffff
 
 	def ADD(self, a, b):
 		print("ADD", hex(a), hex(b))
@@ -23,7 +125,7 @@ class DCPU:
 			EX = 0x0001
 		else:
 			EX = 0x0000
-		self.ram[a] = (self.ram[a] + b) % 0xffff
+		#ram[a]( (ram[a]() + b) % 0xffff )
 
 	def SUB(self, a, b):
 		print("SUB")
@@ -129,101 +231,6 @@ class DCPU:
 	def JSR(self, a):
 		print("JSR", a)
 
-
-
-## 
-	def __init__(self):
-		self.ram = [Cell()] * 65535
-		self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
-			Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
-
-		self.PC, self.SP, self.EX, self.IA = \
-			Cell(0x1234),Cell(0x0001),Cell(0x0000), Cell(0x0000)
-
-
-		
-		self.opcodes = {0x0 : self.sopcode,
-						0x1 : self.SET,
-						0x2 : self.ADD,
-						0x3 : self.SUB,
-						0x4 : self.MUL,
-						0x5 : self.MLI,
-						0x6 : self.DIV,
-						0x7 : self.DVI,
-						0x8 : self.MOD,
-						0x9 : self.MDI,
-						0xa : self.AND,
-						0xb : self.BOR,
-						0xc : self.XOR,
-						0xd : self.SHR,
-						0xe : self.ASR,
-						0xf : self.SHL,
-						0x10: self.IFB,
-						0x11: self.IFC,
-						0x12: self.IFE,
-						0x13: self.IFN,
-						0x14: self.IFG,
-						0x15: self.IFA,
-						0x16: self.IFL,
-						0x17: self.IFU,
-
-						0x1a: self.ADX,
-						0x1b: self.SBX,
-						
-						0x1e: self.STI,
-						0x1f: self.STD
-				}
-
-
-
-		self.sopcodes = {  0x01 : self.JSR,
-
-						   0x08 : self.INT,
-						   0x09 : self.IAG,
-						   0x0a : self.IAS,
-						   0x0b : self.RFI,
-						   
-						   0x0c : self.IAQ,
-
-						   0x10 : self.HWN,
-						   0x11 : self.HWQ,
-
-						   0x12 : self.HWI,
-						}
-
-
-
-		self.values = {
-						0x00 : self.A,
-						0x01 : self.B,
-						0x02 : self.C,
-						0x03 : self.X,
-						0x04 : self.Y,
-						0x05 : self.Z,
-						0x06 : self.I,
-						0x07 : self.J,
-						0x08 : self.ram[self.A],
-						0x09 : self.ram[self.B],
-						0x0a : self.ram[self.C],
-						0x0b : self.ram[self.X],
-						0x0c : self.ram[self.Y],
-						0x0c : self.ram[self.Z],
-						0x0e : self.ram[self.I],
-						0x0f : self.ram[self.J],
-						#TODO
-						0x18 : self.PPOP,
-						0x19 : self.PEEK,
-						0x1a : self.PICK,
-						0x1b : self.SP,
-						0x1c : self.PC,
-						0x1d : self.EX,
-						0x1e : self.ramPCpp,
-						0x1f : self.PCpp
-
-						#0x20-0x3f is treated as exception
-					}
-
-
 	def sopcode(self, o, a):
 		print("SPECIALOP", hex(a))
 		try:
@@ -237,29 +244,31 @@ class DCPU:
 	def PPOP(self, field):
 		if field == 'a': #POP
 			self.SP(self.SP()  - 0x0001)
-			return self.ram[self.SP()]()
+			return ram[self.SP()]()
 
 		else: 			 #PUSH
 			self.SP(self.SP()  + 0x0001)
-			return self.ram[self.SP()]()
+			return ram[self.SP()]()
 
 
 	def PEEK(self):
-		return self.ram[self.SP()]()
+		return ram[SP()]()
 
 	def PICK(self):
-		return self.ram[ self.SP() + self.PCpp() ]()
+		return ram[ SP() + self.PCpp() ]()
 
 	def PCpp(self):
-		self.PC( self.PC() + 0x0001)
-		return self.PC()
+		global PC
+		PC += 0x0001
+		print("PC++:", PC)
+		return PC
 		
 	def ramSP(self):
-		return self.ram[self.SP()]()
+		return ram[SP()]()
 
 	def ramPCpp(self):
 		self.PCpp()
-		return self.ram[self.PC()]()
+		return ram[PC()]()
 
 
 ####
@@ -296,37 +305,40 @@ class DCPU:
 	def dumpRam(self, i=None):
 		print("\n ## RAM DUMP #######################################################")
 		if i == None:
-			length = len(self.ram)
+			length = len(ram)
 		else: 
 			length = i
 		for i in range(0, length, 8):
 			print( "{0:>8}: ".format(hex(i)), end="" )
 			for j in range(0, 8):
-				print( "{0:>6} ".format(hex(self.ram[i+j])), end="")
+				print( "{0:>6} ".format(hex(ram[i+j])), end="")
 			print()
 		print(" ###################################################################\n")
 
 	def setRam(self, buf):
 		for i in range(0, len(buf)):
-			self.ram[i] = buf[i]
+			ram[i] = buf[i]
 	
 	def dumpReg(self):
 		print("\n ## REGISTERS ######################################################")
 		print("  A: {:>6}  B: {:>6}  C: {:>6}  X: {:>6}  Y: {:>6}  Z: {:>6} ".format(\
-				hex(self.A), hex(self.B), hex(self.C), hex(self.X), hex(self.Y), hex(self.Z), ))
+				hex(A), hex(B), hex(C), hex(X), hex(Y), hex(Z), ))
 		print("  I: {:>6}  J: {:>6} PC: {:>6} SP: {:>6} EX: {:>6} IA: {:>6}".format(\
-				hex(self.I), hex(self.J), hex(self.PC), hex(self.SP), hex(self.EX), hex(self.IA)))
+				hex(I), hex(J), hex(PC), hex(SP), hex(EX), hex(IA)))
 		print(" ###################################################################")
 
 cpu = DCPU()
+
 if len(sys.argv) > 1:
-	ins = sys.argv[1:]
+	ins = " ".join(sys.argv[1:]).split()
 else:
 	ins = [0x0411, 0x0412]
+
 cpu.setRam([0x1111, 0x2222, 0x1234])
 for i in ins:
-	print ("Parameter: {}".format(hex(int(i, 16))))
+	print ("Parameter: {}".format(hex(int(str(i), 16))))
 	cpu.ejec(int(str(i), 16))
+
 cpu.dumpReg()
 cpu.dumpRam(80)
 	
