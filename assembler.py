@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+import sys
+
 opcodes = { "SET" : 0x01,
 			"ADD" : 0x02,
 			"SUB" : 0x03,
@@ -95,4 +98,10 @@ def assembly(buf):
 
 		return hex((((a<<5) + b)<<5) + o)
 
-print(assembly("SET A PC"))
+if len(sys.argv) > 1:
+	ins = " ".join(sys.argv[1:])
+else:
+	ins = "SET A PC"
+
+print(ins)
+print(assembly(ins))
