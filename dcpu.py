@@ -12,7 +12,23 @@ class Cell(int):
 			print(self.value, "-->", arg)
 			self.value = arg
 
-ram = [0x0000] * 65535
+class PCinc(object):
+	def __init__(self, f):
+		global PC
+		f()
+		PC += 0x0001
+	def __call__(self):
+		f()
+	
+class incPC(object):
+	def __init__(self, f):
+		global PC
+		PC += 0x0001
+		f(f.__super__())
+	def __call__(self):
+		f(f.__super__())
+
+ram = [0x0000] * 65536
 A, B, C, X, Y, Z, I, J = \
 	0x0002,0x0008,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 
@@ -98,16 +114,17 @@ class DCPU:
 						0x1b : self.SP,
 						0x1c : self.PC,
 						0x1d : self.EX,
-						0x1e : self.ramPCpp,
-						0x1f : self.PCpp
+						0x1e : self.NW, #self.ramPCpp,
+						0x1f : self.ramNW #PCpp
 
 						#0x20-0x3f is treated as exception
 					}
 
-	def SET(self, a, b):
-		print("SET", hex(a), hex(b))
-		v1 = self.resolve(a, 'a')
-		v2 = self.resolve(b, 'b')
+	def SET(self, b, a):
+		print("SET", hex(b), hex(a))
+
+		v1 = self.resolve(b, 'a')
+		v2 = self.resolve(a, 'b')
 		v1(v2())
 
 	def ADD(self, b, a):
@@ -125,7 +142,18 @@ class DCPU:
 		v1(v2() + v1() % 0xffff)
 
 	def SUB(self, a, b):
-		print("SUB")
+		global ram
+		print("SUB", hex(b), hex(a))
+
+		v1 = self.resolve(a, 'a')
+		v2 = self.resolve(b, 'b')
+
+		if v2() - v1() < 0x0000:
+			EX = 0xffff
+		else:
+			EX = 0x0000
+		
+		v1(v2() - v1() % 0xffff)
 	
 	def MUL(self, a, b):
 		print("MUL")
@@ -242,6 +270,7 @@ class DCPU:
 		if a == None:
 			return A
 		else:
+			print("A is now:", a)
 			A = a
 
 	def B(self, b=None):
@@ -378,39 +407,45 @@ class DCPU:
 			ram[J] = c
 
 	def PPOP(self, field):
-		global ram, SP
+		global ram
 		if field == 'a': #POP
-			SP -= 0x0001
-			return ram[SP]
+			self.SP( self.SP() - 0x0001 )
+			return ram[self.SP()]
 
 		else: 			 #PUSH
-			SP += 0x0001
-			return ram[SP]
+			self.SP( self.SP() + 0x0001 )
+			return ram[self.SP()]
 
 
-	def PEEK(self):
-		global ram, SP
-		return ram[SP]
+	def PEEK(self, c=None):
+		global ram
+		return ram[self.SP()]
 
-	def PICK(self): 
-		global ram, SP
-		return ram[ SP + self.PCpp() ]
+	def PICK(self, c=None): 
+		global ram
+		return ram[ self.SP() + self.PCpp() ]
 
-	def PCpp(self):
-		global PC
-		print("PC++:", hex(PC), "-->", end=" ")
-		PC += 0x0001
-		print(hex(PC))
-		return PC
+	def PCpp(self, c=None):
+		print("PC++:", hex(self.PC()), "-->", end=" ")
+		self.PC( self.PC() + 0x0001 )
+		print(hex(self.PC()))
+		return self.PC()
 		
-	def ramSP(self):
-		global SP, ram
-		return ram[SP]
+	def ramSP(self, c=None):
+		global ram
+		return ram[self.SP()]
 
-	def ramPCpp(self):
-		global PC, ram
-		self.PCpp()
-		return ram[PC]
+	@incPC
+	def NW(self, field=None):
+		global ram
+		#if field == None: return ram[self.PC()]
+		return ram[self.PC()]
+
+	@incPC
+	def ramNW(self, field=None):
+		global ram
+		print("[nextword]:", hex(ram[ram[self.PC()]]))
+		return ram[ram[self.PC()]]
 
 
 ####
@@ -444,7 +479,7 @@ class DCPU:
 	def ejec(self, i):
 		(o, a, b) = self.decode(i)
 		print( "OPCODE: ", hex(o))
-		self.opcodes[o](a, b)
+		self.opcodes[o](b, a)
 
 	def dumpRam(self, i=None):
 		print("\n ## RAM DUMP #######################################################")
@@ -475,14 +510,21 @@ cpu = DCPU()
 
 if len(sys.argv) > 1:
 	ins = " ".join(sys.argv[1:]).split()
+	cpu.setRam(sys.argv[1:])
 else:
 	ins = [0x0411, 0x0412]
 
-cpu.setRam([0x1111, 0x2222, 0x1234])
-for i in ins:
-	print ("Parameter: {}".format(hex(int(str(i), 16))))
-	cpu.ejec(int(str(i), 16))
+cpu.setRam([0x7801, 0xffff])
+#for i in ins:
+	#print ("Parameter: {}".format(hex(int(str(i), 16))))
+	#cpu.ejec(int(str(i), 16))
+
+i = ram[cpu.PC()]
+while i != 0x0000:
+	print("ins:", hex(ram[cpu.PC()])) 
+	cpu.ejec(ram[cpu.PC()])
 	cpu.PCpp()
+	i = ram[cpu.PC()]
 
 cpu.dumpReg()
 cpu.dumpRam(80)

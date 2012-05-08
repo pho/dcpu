@@ -72,8 +72,8 @@ values = { "A"  : 0x00,
 		   "SP" : 0x1b,
 		   "PC" : 0x1c,
 		   "EX" : 0x1d,
-		   "NEXTW" : 0x1e,
-		   "NEXTWL" : 0x1f,
+		   "NEXTWL" : 0x1e,
+		   "NEXTW" : 0x1f,
 		   }
 
 
@@ -96,6 +96,9 @@ def assembly(buf):
 			print("WRONG INSTRUCTION")
 			return None
 
+		print("SET", hex(a), hex(b))
+		print("SET", hex(a), hex(b))
+		print("SET", hex(a), hex(b))
 		return hex((((a<<5) + b)<<5) + o)
 
 if len(sys.argv) > 1:
