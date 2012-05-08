@@ -1,5 +1,6 @@
 #!/usr/bin/python3.2
 import sys, types
+import weakref
 
 class Cell(int):
 	def __init__(self, i=0x0000):
@@ -21,9 +22,7 @@ PC, SP, EX, IA = \
 class DCPU:
 
 	def __init__(self):
-		global ram
-		global A
-		global B
+		global A,B,C,X,Y,Z,I,J,PC,SP,EX,IA,ram
 	#	self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
 	#		Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
 
@@ -112,14 +111,17 @@ class DCPU:
 					}
 
 	def SET(self, a, b):
-		global A
+		global A,B,C,X,Y,Z,I,J,PC,SP,EX,IA,ram
 		A += 0x1
 		print("SET", hex(a), hex(b))
-		#(self.resolve(a, 'a')) = self.resolve(b, 'b')
+		v1 = self.resolve(a, 'a')
+		v2 = self.resolve(b, 'b')
+		v1=v2
 		self.PCpp()
 		ram[10] = 0xffff
 
 	def ADD(self, a, b):
+		global A,B,C,X,Y,Z,I,J,PC,SP,EX,IA,ram
 		print("ADD", hex(a), hex(b))
 		if a == 0xffff:
 			EX = 0x0001
@@ -242,33 +244,38 @@ class DCPU:
 					print("OPCODE DOESNT EXISTS:", hex(o))
 
 	def PPOP(self, field):
+		global ram, SP
 		if field == 'a': #POP
-			self.SP(self.SP()  - 0x0001)
-			return ram[self.SP()]()
+			SP -= 0x0001
+			return ram[SP]
 
 		else: 			 #PUSH
-			self.SP(self.SP()  + 0x0001)
-			return ram[self.SP()]()
+			SP += 0x0001
+			return ram[SP]
 
 
 	def PEEK(self):
-		return ram[SP()]()
+		global ram, SP
+		return ram[SP]
 
-	def PICK(self):
-		return ram[ SP() + self.PCpp() ]()
+	def PICK(self): 
+		global ram, SP
+		return ram[ SP + self.PCpp() ]
 
 	def PCpp(self):
-		global PC
+		global PC,SP
 		PC += 0x0001
 		print("PC++:", PC)
 		return PC
 		
 	def ramSP(self):
-		return ram[SP()]()
+		global SP, ram
+		return ram[SP]
 
 	def ramPCpp(self):
+		global PC, ram
 		self.PCpp()
-		return ram[PC()]()
+		return ram[PC]
 
 
 ####
@@ -280,7 +287,9 @@ class DCPU:
 				else:
 					return self.values[a](args)
 			else:
-				return self.values[a]
+				r = weakref.ref(self.values[a])
+				print(r)
+				return r
 		else:
 			print("\n\nINVALID PARAMETER")
 			print("You are on your own...\n\n")
