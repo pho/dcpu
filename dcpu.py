@@ -11,22 +11,45 @@ class Cell(int):
 		else:
 			print(self.value, "-->", arg)
 			self.value = arg
+class Getter(int):
+	def __init__(self, v):
+		self.value = v
+	def __call__(self, arg=None):
+		return self.value
 
-class PCinc(object):
-	def __init__(self, f):
+#class PCinc(object):
+#	def __init__(self, f):
+#		global PC
+#		f()
+#		PC += 0x0001
+#	def __call__(self):
+#		f()
+#	
+#class incPC(object):
+#	def __init__(self, f):
+#		global PC
+#		PC += 0x0001
+#		f()
+#	def __call__(self):
+#		f()
+#
+
+def incPC(f):
+	def wrap(self):
+		print("AMA decorator")
 		global PC
-		f()
-		PC += 0x0001
-	def __call__(self):
-		f()
-	
-class incPC(object):
-	def __init__(self, f):
+		self.PCpp()
+		return f(self)
+	return wrap
+
+def PCinc(f):
+	def wrap(self):
 		global PC
-		PC += 0x0001
-		f(f.__super__())
-	def __call__(self):
-		f(f.__super__())
+		f(self)
+		self.PCpp()
+		
+	print("AMA decorator")
+	return wrap
 
 ram = [0x0000] * 65536
 A, B, C, X, Y, Z, I, J = \
@@ -125,14 +148,23 @@ class DCPU:
 
 		v1 = self.resolve(b, 'a')
 		v2 = self.resolve(a, 'b')
+		
+		
+		print("vals:", v1(), v2())
+		print(type(v1), type(v2))
+
 		v1(v2())
+		print("\n>>\n")
 
 	def ADD(self, b, a):
 		global ram
 		print("ADD", hex(b), hex(a))
 
-		v1 = self.resolve(a, 'a')
-		v2 = self.resolve(b, 'b')
+		v1 = self.resolve(a, 'a')()
+		v2 = self.resolve(b, 'b')()
+
+		print(type(v1), type(v2))
+		print("vals:", v1(), v2())
 
 		if v2() + v1() > 0xffff:
 			EX = 0x0001
@@ -435,23 +467,26 @@ class DCPU:
 		global ram
 		return ram[self.SP()]
 
-	@incPC
 	def NW(self, field=None):
 		global ram
-		#if field == None: return ram[self.PC()]
-		return ram[self.PC()]
+		if field == None: return Getter(ram[self.PC()])
+		print("NW called with args")
+		self.PCpp()
+		print("nextword:", hex(ram[self.PC()]))
+		return Getter(ram[self.PC()])
 
-	@incPC
 	def ramNW(self, field=None):
 		global ram
+		if field == None: return Getter(ram[ram[self.PC()]])
+		self.PCpp()
 		print("[nextword]:", hex(ram[ram[self.PC()]]))
-		return ram[ram[self.PC()]]
+		return Getter(ram[ram[self.PC()]])
 
 
 ####
 	def resolve(self, a, args=None): #TODO Check this..
 		if a in self.values.keys():
-			if isinstance(self.values[a], types.FunctionType):
+			if isinstance(self.values[a], types.MethodType):
 				if args == None:
 					return self.values[a]()
 				else:
