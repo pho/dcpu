@@ -17,17 +17,11 @@ A, B, C, X, Y, Z, I, J = \
 	0x0002,0x0008,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 
 PC, SP, EX, IA = \
-	0x1234,0x0001,0x0000, 0x0000
+	0x0000,0x0000,0x0000, 0x0000
 
 class DCPU:
 
 	def __init__(self):
-		global A,B,C,X,Y,Z,I,J,PC,SP,EX,IA,ram
-	#	self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
-	#		Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
-
-	#	self.PC, self.SP, self.EX, self.IA = \
-	#		Cell(0x1234),Cell(0x0001),Cell(0x0000), Cell(0x0000)
 		
 		self.opcodes = {0x0 : self.sopcode,
 						0x1 : self.SET,
@@ -81,29 +75,29 @@ class DCPU:
 
 
 		self.values = {
-						0x00 : A,
-						0x01 : B,
-						0x02 : C,
-						0x03 : X,
-						0x04 : Y,
-						0x05 : Z,
-						0x06 : I,
-						0x07 : J,
-						0x08 : ram[A],
-						0x09 : ram[B],
-						0x0a : ram[C],
-						0x0b : ram[X],
-						0x0c : ram[Y],
-						0x0c : ram[Z],
-						0x0e : ram[I],
-						0x0f : ram[J],
+						0x00 : self.A,
+						0x01 : self.B,
+						0x02 : self.C,
+						0x03 : self.X,
+						0x04 : self.Y,
+						0x05 : self.Z,
+						0x06 : self.I,
+						0x07 : self.J,
+						0x08 : self.ram_A,
+						0x09 : self.ram_B,
+						0x0a : self.ram_C,
+						0x0b : self.ram_X,
+						0x0c : self.ram_Y,
+						0x0c : self.ram_Z,
+						0x0e : self.ram_I,
+						0x0f : self.ram_J,
 						#TODO
 						0x18 : self.PPOP,
 						0x19 : self.PEEK,
 						0x1a : self.PICK,
-						0x1b : SP,
-						0x1c : PC,
-						0x1d : EX,
+						0x1b : self.SP,
+						0x1c : self.PC,
+						0x1d : self.EX,
 						0x1e : self.ramPCpp,
 						0x1f : self.PCpp
 
@@ -111,23 +105,24 @@ class DCPU:
 					}
 
 	def SET(self, a, b):
-		global A,B,C,X,Y,Z,I,J,PC,SP,EX,IA,ram
-		A += 0x1
 		print("SET", hex(a), hex(b))
 		v1 = self.resolve(a, 'a')
 		v2 = self.resolve(b, 'b')
-		v1=v2
-		self.PCpp()
-		ram[10] = 0xffff
+		v1(v2())
 
-	def ADD(self, a, b):
-		global A,B,C,X,Y,Z,I,J,PC,SP,EX,IA,ram
-		print("ADD", hex(a), hex(b))
-		if a == 0xffff:
+	def ADD(self, b, a):
+		global ram
+		print("ADD", hex(b), hex(a))
+
+		v1 = self.resolve(a, 'a')
+		v2 = self.resolve(b, 'b')
+
+		if v2() + v1() > 0xffff:
 			EX = 0x0001
 		else:
 			EX = 0x0000
-		#ram[a]( (ram[a]() + b) % 0xffff )
+		
+		v1(v2() + v1() % 0xffff)
 
 	def SUB(self, a, b):
 		print("SUB")
@@ -242,6 +237,145 @@ class DCPU:
 					print("RESERVED OPCODE:", hex(o))
 			else:
 					print("OPCODE DOESNT EXISTS:", hex(o))
+	def A(self, a=None):
+		global A
+		if a == None:
+			return A
+		else:
+			A = a
+
+	def B(self, b=None):
+		global B
+		if b == None:
+			return B
+		else:
+			B = b
+
+	def C(self, c=None):
+		global C
+		if c == None:
+			return C
+		else:
+			C = c
+
+	def X(self, c=None):
+		global X
+		if c == None:
+			return X
+		else:
+			X = c
+
+	def Y(self, c=None):
+		global Y
+		if c == None:
+			return Y
+		else:
+			Y = c
+
+	def Z(self, c=None):
+		global Z
+		if c == None:
+			return Z
+		else:
+			Z = c
+
+	def I(self, c=None):
+		global I
+		if c == None:
+			return I
+		else:
+			I = c
+
+	def J(self, c=None):
+		global J
+		if c == None:
+			return J
+		else:
+			J = c
+
+	def PC(self, c=None):
+		global PC
+		if c == None:
+			return PC
+		else:
+			PC = c
+
+	def SP(self, c=None):
+		global SP
+		if c == None:
+			return SP
+		else:
+			SP = c
+
+	def EX(self, c=None):
+		global EX
+		if c == None:
+			return EX
+		else:
+			EX = c
+
+	def IA(self, c=None):
+		global IA
+		if c == None:
+			return IA
+		else:
+			IA = c
+
+	def ram_A(self, c=None):
+		global ram
+		if c == None:
+			return ram[A]
+		else:
+			ram[A] = c
+
+	def ram_B(self, c=None):
+		global ram
+		if c == None:
+			return ram[B]
+		else:
+			ram[B] = c
+
+	def ram_C(self, c=None):
+		global ram
+		if c == None:
+			return ram[C]
+		else:
+			ram[C] = c
+
+	def ram_X(self, c=None):
+		global ram
+		if c == None:
+			return ram[X]
+		else:
+			ram[X] = c
+
+	def ram_Y(self, c=None):
+		global ram
+		if c == None:
+			return ram[Y]
+		else:
+			ram[Y] = c
+
+	def ram_Z(self, c=None):
+		global ram
+		if c == None:
+			return ram[Z]
+		else:
+			ram[Z] = c
+
+	def ram_I(self, c=None):
+		global ram
+		if c == None:
+			return ram[I]
+		else:
+			ram[I] = c
+
+	def ram_J(self, c=None):
+		global ram
+		if c == None:
+			return ram[J]
+		else:
+			ram[J] = c
 
 	def PPOP(self, field):
 		global ram, SP
@@ -287,9 +421,9 @@ class DCPU:
 				else:
 					return self.values[a](args)
 			else:
-				r = weakref.ref(self.values[a])
-				print(r)
-				return r
+				#r = weakref.ref(self.values[a])
+				#print(r)
+				return self.values[a]
 		else:
 			print("\n\nINVALID PARAMETER")
 			print("You are on your own...\n\n")
@@ -347,6 +481,7 @@ cpu.setRam([0x1111, 0x2222, 0x1234])
 for i in ins:
 	print ("Parameter: {}".format(hex(int(str(i), 16))))
 	cpu.ejec(int(str(i), 16))
+	cpu.PCpp()
 
 cpu.dumpReg()
 cpu.dumpRam(80)
