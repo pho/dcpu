@@ -397,9 +397,10 @@ class DCPU:
 		return ram[ SP + self.PCpp() ]
 
 	def PCpp(self):
-		global PC,SP
+		global PC
+		print("PC++:", hex(PC), "-->", end=" ")
 		PC += 0x0001
-		print("PC++:", PC)
+		print(hex(PC))
 		return PC
 		
 	def ramSP(self):
@@ -432,9 +433,9 @@ class DCPU:
 	def decode(self, i):
 		# aaaaaabbbbbooooo
 		opcode = i & 0x001f
-		print("opcode:", hex(opcode))
-		print("i>>5:", hex(i>>5))
-		print("i>>10:", hex(i>>10))
+		#print("opcode:", hex(opcode))
+		#print("i>>5:", hex(i>>5))
+		#print("i>>10:", hex(i>>10))
 		b = (i>>5) & 0x1f
 		a = i>>10
 
