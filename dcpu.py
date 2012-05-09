@@ -15,13 +15,6 @@ class Cell(int):
 		return str(self.v)
 
 
-class Getter(int):
-	def __init__(self, v):
-		self.value = v
-	def __call__(self, arg=None):
-		return self.value
-
-
 ram = []
 for i in range(0, 0x10000):
 	ram.append(Cell())
