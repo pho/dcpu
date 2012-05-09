@@ -15,19 +15,20 @@ class Cell(int):
 		return str(self.v)
 
 
-ram = []
-for i in range(0, 0x10000):
-	ram.append(Cell())
-
-A, B, C, X, Y, Z, I, J = \
-	Cell(0x0002),Cell(0x0004),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
-
-PC, SP, EX, IA = \
-	Cell(0x0000),Cell(0x0000),Cell(0x0000), Cell(0x0000)
 
 class DCPU:
 
 	def __init__(self):
+		self.ram = []
+		for i in range(0, 0x10000):
+			self.ram.append(Cell())
+
+		self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
+			Cell(0x0002),Cell(0x0004),Cell(0x0000),Cell(0x0000),\
+			Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
+
+		self.PC, self.SP, self.EX, self.IA = \
+			Cell(0x0000),Cell(0x0000),Cell(0x0000), Cell(0x0000)
 		
 		self.opcodes = {0x0 : self.sopcode,
 						0x1 : self.SET,
@@ -119,7 +120,6 @@ class DCPU:
 		v1(v2())
 
 	def ADD(self, a, b):
-		global ram, EX
 		print("ADD", hex(a), hex(b))
 
 		v1 = self.resolve(a, 'a')
@@ -127,9 +127,9 @@ class DCPU:
 
 		if v2() + v1() > 0xffff:
 			print("Overflow")
-			EX(0x0001)
+			self.EX(0x0001)
 		else:
-			EX(0x0000)
+			self.EX(0x0000)
 		
 		v3 = v1() + v2()
 		v3 = v3 % 0xffff
@@ -137,7 +137,6 @@ class DCPU:
 		v1(v3)
 
 	def SUB(self, a, b):
-		global ram
 		print("SUB", hex(a), hex(b))
 
 		v1 = self.resolve(a, 'a')
@@ -145,9 +144,9 @@ class DCPU:
 
 		if v2() > v1():
 			print("Underflow")
-			EX(0xffff)
+			self.EX(0xffff)
 		else:
-			EX(0x0000)
+			self.EX(0x0000)
 		
 		v3 = v1() - v2()
 		v3 = v3 % 0xffff
@@ -173,10 +172,10 @@ class DCPU:
 
 
 		if argA() == 0:
-			EX(0x0)
+			self.EX(0x0)
 			argB(0x0)
 		else:
-			EX(((argB()<<16)/argA())&0xffff )
+			self.EX(((argB()<<16)/argA())&0xffff )
 			argB( argB()/ argA() )
 		
 	def DVI(self, a, b):
@@ -302,131 +301,62 @@ class DCPU:
 
 	## VALUES
 
-	def A(self, a=None):
-		global A
-		return A
-		if a == None:
-			return A
-		else:
-			print("A is now:", a)
-			A = a
-
-	def B(self, b=None):
-		global B
-		return B
-
-	def C(self, c=None):
-		global C
-		return C
-
-	def X(self, c=None):
-		global X
-		return X
-
-	def Y(self, c=None):
-		global Y
-		return Y
-
-	def Z(self, c=None):
-		global Z
-		return Z
-
-	def I(self, c=None):
-		global I
-		return I
-
-	def J(self, c=None):
-		global J
-		return J
-
-	def PC(self, c=None):
-		global PC
-
-	def SP(self, c=None):
-		global SP
-		return SP
-
-	def EX(self, c=None):
-		global EX
-		return EX
-
-	def IA(self, c=None):
-		global IA
-		return IA
-
 	def ram_A(self, c=None):
-		global ram
-		return ram[A]
+		return self.ram[A]
 
 	def ram_B(self, c=None):
-		global ram
-		return ram[B]
+		return self.ram[B()]
 
 	def ram_C(self, c=None):
-		global ram
-		return ram[C]
+		return self.ram[C()]
 
 	def ram_X(self, c=None):
-		global ram
-		return ram[X]
+		return self.ram[X()]
 
 	def ram_Y(self, c=None):
-		global ram
-		return ram[Y]
+		return self.ram[Y()]
 
 	def ram_Z(self, c=None):
-		global ram
-		return ram[Z]
+		return self.ram[Z()]
 
 	def ram_I(self, c=None):
-		global ram
-		return ram[I]
+		return self.ram[I()]
 
 	def ram_J(self, c=None):
-		global ram
-		return ram[J]
+		return self.ram[J()]
 
 	def PPOP(self, field):
-		global ram
-		if field == 'a': #POP
+		if field == '2': #POP
 			self.SP( self.SP() - 0x0001 )
-			return ram[self.SP()]
+			return self.ram[self.SP()]
 
 		else: 			 #PUSH
 			self.SP( self.SP() + 0x0001 )
-			return ram[self.SP()]
+			return self.ram[self.SP()]
 
 
 	def PEEK(self, c=None):
-		global ram
-		return ram[self.SP()]
+		return self.ram[self.SP()]
 
 	def PICK(self, c=None): 
-		global ram
-		return ram[ self.SP() + self.PCpp() ]
+		return self.ram[ self.SP() + self.PCpp() ]
 
 	def PCpp(self, c=None):
-		global PC
-		PC( PC() + 0x0001 )
-		return PC()
+		self.PC( self.PC() + 0x0001 )
+		return self.PC()
 		
 	def ramSP(self, c=None):
-		global ram
-		return ram[self.SP()]
+		return self.ram[self.SP()]
 
 	def NW(self, field=None):
-		global ram, PC
 		self.PCpp()
-		print("nextword:", hex(ram[PC()]()))
-		return ram[PC()]
-		return ram[self.PC()]
+		print("nextword:", hex(self.ram[self.PC()]()))
+		return self.ram[self.PC()]
 
 	def ramNW(self, field=None):
-		global ram
 		self.PCpp()
-		print("[nextword]:", hex(ram[ram[self.PC()]]))
-		print(type(ram[ram[self.PC()]]))
-		return ram[ram[self.PC()]]
+		print("[nextword]:", hex(self.ram[self.ram[self.PC()]]))
+		return self.ram[self.ram[self.PC()]]
 
 
 ####
@@ -465,27 +395,26 @@ class DCPU:
 	def dumpRam(self, i=None):
 		print("\n ## RAM DUMP #######################################################")
 		if i == None:
-			length = len(ram)
+			length = len(self.ram)
 		else: 
 			length = i
 		for i in range(0, length, 8):
 			print( "{0:>8}: ".format(hex(i)), end="" )
 			for j in range(0, 8):
-				print( "{0:>6} ".format(hex(ram[i+j]())), end="")
+				print( "{0:>6} ".format(hex(self.ram[i+j]())), end="")
 			print()
 		print(" ###################################################################\n")
 
 	def setRam(self, buf):
-		global ram
 		for i in range(0, len(buf)):
-			ram[i](buf[i])
+			self.ram[i](buf[i])
 	
 	def dumpReg(self):
 		print("\n ## REGISTERS ######################################################")
 		print("  A: {:>6}  B: {:>6}  C: {:>6}  X: {:>6}  Y: {:>6}  Z: {:>6} ".format(\
-				hex(A()), hex(B()), hex(C()), hex(X()), hex(Y()), hex(Z()), ))
+				hex(self.A()), hex(self.B()), hex(self.C()), hex(self.X()), hex(self.Y()), hex(self.Z()) ))
 		print("  I: {:>6}  J: {:>6} PC: {:>6} SP: {:>6} EX: {:>6} IA: {:>6}".format(\
-				hex(I()), hex(J()), hex(PC()), hex(SP()), hex(EX()), hex(IA())))
+				hex(self.I()), hex(self.J()), hex(self.PC()), hex(self.SP()), hex(self.EX()), hex(self.IA())))
 		print(" ###################################################################")
 
 cpu = DCPU()
@@ -497,16 +426,16 @@ else:
 	ins = [0x0401, 0x0402]
 cpu.setRam(ins)
 
-i = ram[PC()]()
+i = cpu.ram[cpu.PC()]()
 print("\n>>-------------<<\n")
 
 while i != 0x0000:
 #or k in range(0, 3):
 
-	print("ins:", hex(ram[PC()]())) 
-	cpu.ejec(ram[PC()]())
+	print("ins:", hex(cpu.ram[cpu.PC()]())) 
+	cpu.ejec(cpu.ram[cpu.PC()]())
 	cpu.PCpp()
-	i = ram[PC()]()
+	i = cpu.ram[cpu.PC()]()
 	print("\n>>-------------<<\n")
 
 cpu.dumpReg()
