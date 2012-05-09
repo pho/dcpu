@@ -72,8 +72,8 @@ values = { "A"  : 0x00,
 		   "SP" : 0x1b,
 		   "PC" : 0x1c,
 		   "EX" : 0x1d,
-		   "NEXTW" : 0x1e,
-		   "NEXTWL" : 0x1f,
+		   "NEXTWL" : 0x1e,
+		   "NEXTW" : 0x1f,
 		   }
 
 
