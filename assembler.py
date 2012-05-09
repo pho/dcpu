@@ -96,9 +96,6 @@ def assembly(buf):
 			print("WRONG INSTRUCTION")
 			return None
 
-		print("SET", hex(a), hex(b))
-		print("SET", hex(a), hex(b))
-		print("SET", hex(a), hex(b))
 		return hex((((a<<5) + b)<<5) + o)
 
 if len(sys.argv) > 1:

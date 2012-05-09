@@ -2,15 +2,31 @@
 import sys, types
 import weakref
 
+#class Cell(int):
+#	def __init__(self, i=0x0000):
+#		self.value = i
+#	def __call__(self, arg=None):
+#		if arg == None:
+#			return self.value
+#		else:
+#			print(self.value, "-->", arg)
+#			self.value = arg
+#	def __repr__(self):
+#		return "Im a Cell: {} {}".format(self, self.value)
+#
 class Cell(int):
-	def __init__(self, i=0x0000):
-		self.value = i
-	def __call__(self, arg=None):
-		if arg == None:
-			return self.value
+	def __init__(self, a=0x0):
+		self.v = a
+
+	def __call__(self, a = None):
+		if a == None:
+			return self.v
 		else:
-			print(self.value, "-->", arg)
-			self.value = arg
+			self.v = a 
+	def __repr__(self):
+		return str(self.v)
+
+
 class Getter(int):
 	def __init__(self, v):
 		self.value = v
@@ -51,12 +67,15 @@ def PCinc(f):
 	print("AMA decorator")
 	return wrap
 
-ram = [0x0000] * 65536
+ram = []
+for i in range(0, 0x10000):
+	ram.append(Cell())
+
 A, B, C, X, Y, Z, I, J = \
-	0x0002,0x0008,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
+	Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
 
 PC, SP, EX, IA = \
-	0x0000,0x0000,0x0000, 0x0000
+	Cell(0x0000),Cell(0x0000),Cell(0x0000), Cell(0x0000)
 
 class DCPU:
 
@@ -149,19 +168,14 @@ class DCPU:
 		v1 = self.resolve(b, 'a')
 		v2 = self.resolve(a, 'b')
 		
-		
-		print("vals:", v1(), v2())
-		print(type(v1), type(v2))
-
 		v1(v2())
-		print("\n>>\n")
 
 	def ADD(self, b, a):
 		global ram
 		print("ADD", hex(b), hex(a))
 
-		v1 = self.resolve(a, 'a')()
-		v2 = self.resolve(b, 'b')()
+		v1 = self.resolve(a, 'a')
+		v2 = self.resolve(b, 'b')
 
 		print(type(v1), type(v2))
 		print("vals:", v1(), v2())
@@ -171,7 +185,7 @@ class DCPU:
 		else:
 			EX = 0x0000
 		
-		v1(v2() + v1() % 0xffff)
+		v1((v2() + v1()) % 0xffff)
 
 	def SUB(self, a, b):
 		global ram
@@ -297,8 +311,12 @@ class DCPU:
 					print("RESERVED OPCODE:", hex(o))
 			else:
 					print("OPCODE DOESNT EXISTS:", hex(o))
+
+	## VALUES
+
 	def A(self, a=None):
 		global A
+		return A
 		if a == None:
 			return A
 		else:
@@ -307,6 +325,7 @@ class DCPU:
 
 	def B(self, b=None):
 		global B
+		return B
 		if b == None:
 			return B
 		else:
@@ -314,6 +333,7 @@ class DCPU:
 
 	def C(self, c=None):
 		global C
+		return C
 		if c == None:
 			return C
 		else:
@@ -321,6 +341,7 @@ class DCPU:
 
 	def X(self, c=None):
 		global X
+		return X
 		if c == None:
 			return X
 		else:
@@ -328,6 +349,7 @@ class DCPU:
 
 	def Y(self, c=None):
 		global Y
+		return Y
 		if c == None:
 			return Y
 		else:
@@ -335,6 +357,7 @@ class DCPU:
 
 	def Z(self, c=None):
 		global Z
+		return Z
 		if c == None:
 			return Z
 		else:
@@ -342,6 +365,7 @@ class DCPU:
 
 	def I(self, c=None):
 		global I
+		return I
 		if c == None:
 			return I
 		else:
@@ -349,6 +373,8 @@ class DCPU:
 
 	def J(self, c=None):
 		global J
+		return J
+
 		if c == None:
 			return J
 		else:
@@ -356,6 +382,7 @@ class DCPU:
 
 	def PC(self, c=None):
 		global PC
+		return PC
 		if c == None:
 			return PC
 		else:
@@ -363,6 +390,7 @@ class DCPU:
 
 	def SP(self, c=None):
 		global SP
+		return SP
 		if c == None:
 			return SP
 		else:
@@ -370,6 +398,7 @@ class DCPU:
 
 	def EX(self, c=None):
 		global EX
+		return EX
 		if c == None:
 			return EX
 		else:
@@ -377,6 +406,7 @@ class DCPU:
 
 	def IA(self, c=None):
 		global IA
+		return IA
 		if c == None:
 			return IA
 		else:
@@ -384,6 +414,7 @@ class DCPU:
 
 	def ram_A(self, c=None):
 		global ram
+		return ram[A]
 		if c == None:
 			return ram[A]
 		else:
@@ -391,6 +422,7 @@ class DCPU:
 
 	def ram_B(self, c=None):
 		global ram
+		return ram[B]
 		if c == None:
 			return ram[B]
 		else:
@@ -398,6 +430,7 @@ class DCPU:
 
 	def ram_C(self, c=None):
 		global ram
+		return ram[C]
 		if c == None:
 			return ram[C]
 		else:
@@ -405,6 +438,7 @@ class DCPU:
 
 	def ram_X(self, c=None):
 		global ram
+		return ram[X]
 		if c == None:
 			return ram[X]
 		else:
@@ -412,6 +446,7 @@ class DCPU:
 
 	def ram_Y(self, c=None):
 		global ram
+		return ram[Y]
 		if c == None:
 			return ram[Y]
 		else:
@@ -419,6 +454,7 @@ class DCPU:
 
 	def ram_Z(self, c=None):
 		global ram
+		return ram[Z]
 		if c == None:
 			return ram[Z]
 		else:
@@ -426,6 +462,7 @@ class DCPU:
 
 	def ram_I(self, c=None):
 		global ram
+		return ram[I]
 		if c == None:
 			return ram[I]
 		else:
@@ -433,6 +470,7 @@ class DCPU:
 
 	def ram_J(self, c=None):
 		global ram
+		return ram[J]
 		if c == None:
 			return ram[J]
 		else:
@@ -458,29 +496,27 @@ class DCPU:
 		return ram[ self.SP() + self.PCpp() ]
 
 	def PCpp(self, c=None):
-		print("PC++:", hex(self.PC()), "-->", end=" ")
-		self.PC( self.PC() + 0x0001 )
-		print(hex(self.PC()))
-		return self.PC()
+		global PC
+		PC( PC() + 0x0001 )
+		return PC()
 		
 	def ramSP(self, c=None):
 		global ram
 		return ram[self.SP()]
 
 	def NW(self, field=None):
-		global ram
-		if field == None: return Getter(ram[self.PC()])
-		print("NW called with args")
+		global ram, PC
 		self.PCpp()
-		print("nextword:", hex(ram[self.PC()]))
-		return Getter(ram[self.PC()])
+		print("nextword:", hex(ram[PC()]()))
+		return ram[PC()]
+		return ram[self.PC()]
 
 	def ramNW(self, field=None):
 		global ram
-		if field == None: return Getter(ram[ram[self.PC()]])
 		self.PCpp()
 		print("[nextword]:", hex(ram[ram[self.PC()]]))
-		return Getter(ram[ram[self.PC()]])
+		print(type(ram[ram[self.PC()]]))
+		return ram[ram[self.PC()]]
 
 
 ####
@@ -525,20 +561,21 @@ class DCPU:
 		for i in range(0, length, 8):
 			print( "{0:>8}: ".format(hex(i)), end="" )
 			for j in range(0, 8):
-				print( "{0:>6} ".format(hex(ram[i+j])), end="")
+				print( "{0:>6} ".format(hex(ram[i+j]())), end="")
 			print()
 		print(" ###################################################################\n")
 
 	def setRam(self, buf):
+		global ram
 		for i in range(0, len(buf)):
-			ram[i] = buf[i]
+			ram[i](buf[i])
 	
 	def dumpReg(self):
 		print("\n ## REGISTERS ######################################################")
 		print("  A: {:>6}  B: {:>6}  C: {:>6}  X: {:>6}  Y: {:>6}  Z: {:>6} ".format(\
-				hex(A), hex(B), hex(C), hex(X), hex(Y), hex(Z), ))
+				hex(A()), hex(B()), hex(C()), hex(X()), hex(Y()), hex(Z()), ))
 		print("  I: {:>6}  J: {:>6} PC: {:>6} SP: {:>6} EX: {:>6} IA: {:>6}".format(\
-				hex(I), hex(J), hex(PC), hex(SP), hex(EX), hex(IA)))
+				hex(I()), hex(J()), hex(PC()), hex(SP()), hex(EX()), hex(IA())))
 		print(" ###################################################################")
 
 cpu = DCPU()
@@ -549,17 +586,20 @@ if len(sys.argv) > 1:
 else:
 	ins = [0x0411, 0x0412]
 
-cpu.setRam([0x7801, 0xffff])
+cpu.setRam([0x7801, 0xffff, 0x7021, 0x7002])
 #for i in ins:
 	#print ("Parameter: {}".format(hex(int(str(i), 16))))
 	#cpu.ejec(int(str(i), 16))
 
-i = ram[cpu.PC()]
+i = ram[PC()]()
 while i != 0x0000:
-	print("ins:", hex(ram[cpu.PC()])) 
-	cpu.ejec(ram[cpu.PC()])
+#or k in range(0, 3):
+
+	print("ins:", hex(ram[PC()]())) 
+	cpu.ejec(ram[PC()]())
 	cpu.PCpp()
-	i = ram[cpu.PC()]
+	i = ram[PC()]()
+	print("\n>>\n")
 
 cpu.dumpReg()
 cpu.dumpRam(80)
