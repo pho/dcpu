@@ -321,155 +321,77 @@ class DCPU:
 	def B(self, b=None):
 		global B
 		return B
-		if b == None:
-			return B
-		else:
-			B = b
 
 	def C(self, c=None):
 		global C
 		return C
-		if c == None:
-			return C
-		else:
-			C = c
 
 	def X(self, c=None):
 		global X
 		return X
-		if c == None:
-			return X
-		else:
-			X = c
 
 	def Y(self, c=None):
 		global Y
 		return Y
-		if c == None:
-			return Y
-		else:
-			Y = c
 
 	def Z(self, c=None):
 		global Z
 		return Z
-		if c == None:
-			return Z
-		else:
-			Z = c
 
 	def I(self, c=None):
 		global I
 		return I
-		if c == None:
-			return I
-		else:
-			I = c
 
 	def J(self, c=None):
 		global J
 		return J
 
-		if c == None:
-			return J
-		else:
-			J = c
-
 	def PC(self, c=None):
 		global PC
-		return PC
-		if c == None:
-			return PC
-		else:
-			PC = c
 
 	def SP(self, c=None):
 		global SP
 		return SP
-		if c == None:
-			return SP
-		else:
-			SP = c
 
 	def EX(self, c=None):
 		global EX
 		return EX
-		if c == None:
-			return EX
-		else:
-			EX = c
 
 	def IA(self, c=None):
 		global IA
 		return IA
-		if c == None:
-			return IA
-		else:
-			IA = c
 
 	def ram_A(self, c=None):
 		global ram
 		return ram[A]
-		if c == None:
-			return ram[A]
-		else:
-			ram[A] = c
 
 	def ram_B(self, c=None):
 		global ram
 		return ram[B]
-		if c == None:
-			return ram[B]
-		else:
-			ram[B] = c
 
 	def ram_C(self, c=None):
 		global ram
 		return ram[C]
-		if c == None:
-			return ram[C]
-		else:
-			ram[C] = c
 
 	def ram_X(self, c=None):
 		global ram
 		return ram[X]
-		if c == None:
-			return ram[X]
-		else:
-			ram[X] = c
 
 	def ram_Y(self, c=None):
 		global ram
 		return ram[Y]
-		if c == None:
-			return ram[Y]
-		else:
-			ram[Y] = c
 
 	def ram_Z(self, c=None):
 		global ram
 		return ram[Z]
-		if c == None:
-			return ram[Z]
-		else:
-			ram[Z] = c
 
 	def ram_I(self, c=None):
 		global ram
 		return ram[I]
-		if c == None:
-			return ram[I]
-		else:
-			ram[I] = c
 
 	def ram_J(self, c=None):
 		global ram
 		return ram[J]
-		if c == None:
-			return ram[J]
-		else:
-			ram[J] = c
 
 	def PPOP(self, field):
 		global ram
