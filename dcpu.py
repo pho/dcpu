@@ -1,19 +1,7 @@
 #!/usr/bin/python3.2
 import sys, types
-import weakref
 
-#class Cell(int):
-#	def __init__(self, i=0x0000):
-#		self.value = i
-#	def __call__(self, arg=None):
-#		if arg == None:
-#			return self.value
-#		else:
-#			print(self.value, "-->", arg)
-#			self.value = arg
-#	def __repr__(self):
-#		return "Im a Cell: {} {}".format(self, self.value)
-#
+
 class Cell(int):
 	def __init__(self, a=0x0):
 		self.v = a
@@ -22,7 +10,7 @@ class Cell(int):
 		if a == None:
 			return self.v
 		else:
-			self.v = a 
+			self.v = (a % 0xffff) 
 	def __repr__(self):
 		return str(self.v)
 
@@ -33,46 +21,13 @@ class Getter(int):
 	def __call__(self, arg=None):
 		return self.value
 
-#class PCinc(object):
-#	def __init__(self, f):
-#		global PC
-#		f()
-#		PC += 0x0001
-#	def __call__(self):
-#		f()
-#	
-#class incPC(object):
-#	def __init__(self, f):
-#		global PC
-#		PC += 0x0001
-#		f()
-#	def __call__(self):
-#		f()
-#
-
-def incPC(f):
-	def wrap(self):
-		print("AMA decorator")
-		global PC
-		self.PCpp()
-		return f(self)
-	return wrap
-
-def PCinc(f):
-	def wrap(self):
-		global PC
-		f(self)
-		self.PCpp()
-		
-	print("AMA decorator")
-	return wrap
 
 ram = []
 for i in range(0, 0x10000):
 	ram.append(Cell())
 
 A, B, C, X, Y, Z, I, J = \
-	Cell(0x0002),Cell(0x0008),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
+	Cell(0x0002),Cell(0x0004),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
 
 PC, SP, EX, IA = \
 	Cell(0x0000),Cell(0x0000),Cell(0x0000), Cell(0x0000)
@@ -170,69 +125,109 @@ class DCPU:
 		
 		v1(v2())
 
-	def ADD(self, b, a):
-		global ram
-		print("ADD", hex(b), hex(a))
+	def ADD(self, a, b):
+		global ram, EX
+		print("ADD", hex(a), hex(b))
 
 		v1 = self.resolve(a, 'a')
 		v2 = self.resolve(b, 'b')
 
-		print(type(v1), type(v2))
-		print("vals:", v1(), v2())
-
 		if v2() + v1() > 0xffff:
-			EX = 0x0001
+			print("Overflow")
+			EX(0x0001)
 		else:
-			EX = 0x0000
+			EX(0x0000)
 		
-		v1((v2() + v1()) % 0xffff)
+		v3 = v1() + v2()
+		v3 = v3 % 0xffff
+		#print("ADD:", v3 )
+		v1(v3)
 
 	def SUB(self, a, b):
 		global ram
-		print("SUB", hex(b), hex(a))
+		print("SUB", hex(a), hex(b))
 
 		v1 = self.resolve(a, 'a')
 		v2 = self.resolve(b, 'b')
 
-		if v2() - v1() < 0x0000:
-			EX = 0xffff
+		if v2() > v1():
+			print("Underflow")
+			EX(0xffff)
 		else:
-			EX = 0x0000
+			EX(0x0000)
 		
-		v1(v2() - v1() % 0xffff)
+		v3 = v1() - v2()
+		v3 = v3 % 0xffff
+		#print("SUB:", hex(v3) )
+		v1(v3)
 	
-	def MUL(self, a, b):
-		print("MUL")
+	def MUL(self, b, a):
+		print("MUL", hex(b), hex(a))
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+
+		EX(((argB()*argA())>>16)&0xffff)
+
+		argB( argA() * argB() )
 
 	def MLI(self, a, b):
-		print("MLI")
+		print("MLI not implemented")
 
-	def DIV(self, a, b):
-		print("DIV")
+	def DIV(self, b, a):
+		print("DIV", hex(b), hex(a))
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
 
+
+		if argA() == 0:
+			EX(0x0)
+			argB(0x0)
+		else:
+			EX(((argB()<<16)/argA())&0xffff )
+			argB( argB()/ argA() )
+		
 	def DVI(self, a, b):
-		print("DVI")
+		print("DVI not implemented")
 
-	def MOD(self, a, b):
-		print("MOD")
+	def MOD(self, b, a):
+		print("MOD", hex(b), hex(a))
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+
+		if argA() == 0:
+			argB(0x0)
+		else:
+			argB( argB() % argA() )
 
 	def MDI(self, a, b):
-		print("DIV")
+		print("MDI not implemented")
+
+	def AND(self, b, a):
+		print("AND", hex(b), hex(a))
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+
+		argB( argB() & argA() )
+
+	def BOR(self, b, a):
+		print("BOR", hex(b), hex(a))
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+
+		argB( argB() | argA() )
+
+	def XOR(self, b, a):
+		print("XOR", hex(b), hex(a))
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+
+		argB( argB() ^ argA() )
 
 	def SHL(self, a, b):
 		print("SHL")
 
 	def SHR(self, a, b):
 		print("SHR")
-
-	def AND(self, a, b):
-		print("AND")
-
-	def BOR(self, a, b):
-		print("BOR")
-
-	def XOR(self, a, b):
-		print("XOR")
 
 	def IFE(self, a, b):
 		print("IFE")
@@ -581,17 +576,15 @@ class DCPU:
 cpu = DCPU()
 
 if len(sys.argv) > 1:
-	ins = " ".join(sys.argv[1:]).split()
-	cpu.setRam(sys.argv[1:])
+	ins = list(map(lambda x: int(x, 16), sys.argv[1:]))
+	print("STDIN:", ins)
 else:
-	ins = [0x0411, 0x0412]
-
-cpu.setRam([0x7801, 0xffff, 0x7021, 0x7002])
-#for i in ins:
-	#print ("Parameter: {}".format(hex(int(str(i), 16))))
-	#cpu.ejec(int(str(i), 16))
+	ins = [0x0401, 0x0402]
+cpu.setRam(ins)
 
 i = ram[PC()]()
+print("\n>>-------------<<\n")
+
 while i != 0x0000:
 #or k in range(0, 3):
 
@@ -599,7 +592,7 @@ while i != 0x0000:
 	cpu.ejec(ram[PC()]())
 	cpu.PCpp()
 	i = ram[PC()]()
-	print("\n>>\n")
+	print("\n>>-------------<<\n")
 
 cpu.dumpReg()
 cpu.dumpRam(80)
