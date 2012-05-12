@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-import sys
+import sys, re
+from optparse import OptionParser
 
 opcodes = { "SET" : 0x01,
 			"ADD" : 0x02,
@@ -78,30 +79,104 @@ values = { "A"  : 0x00,
 
 
 def assembly(buf):
-	i = buf.split(" ")
+	ap1=None
+	ap2=None
+	i = buf.split()
 
 	if i[0] in opcodes.keys():
 		o = opcodes[i[0]]
-		print("OPCODE:", hex(o))
+		#print("OPCODE:", hex(o))
+		
+		#Get b
 		try:
 			b = values[i[1]]
-			print("b:", hex(b))
+		#	print("b:", hex(b))
 		except:
-			print("WRONG INSTRUCTION")
-			return None
+			r = re.match("^\[(0x..?.?.?)\]$", i[1])
+			if r:
+				b = values["NEXTW"]
+				ap1 = r.group(1)
+			else:
+				r = re.match("^(0x..?.?.?)$", i[1])
+				if r:
+					b = values["NEXTWL"]
+					ap1 = r.group(1)
+				else:
+					print("WRONG INSTRUCTION:", buf)
+					sys.exit(-1)
+
+
+		# Get a
 		try:
 			a = values[i[2]]
-			print("a:", hex(a))
+			#print("a:", hex(a))
 		except:
-			print("WRONG INSTRUCTION")
-			return None
+			r = re.match("^\[(0x..?.?.?)\]$", i[2])
+			if r:
+				a = values["NEXTW"]
+				ap2 = r.group(1)
 
-		return hex((((a<<5) + b)<<5) + o)
+			else:
+				r = re.match("^(0x..?.?.?)$", i[2])
+				if r:
+					a = values["NEXTWL"]
+					ap2 = r.group(1)
+				else:
+					print("WRONG INSTRUCTION:", buf)
+					sys.exit(-1)
+		
+		ret = "{} ".format(hex((((a<<5) + b)<<5) + o) )
+
+		if ap1:
+			ret += "{} ".format(hex(int(ap1, 16)))
+
+		if ap2:
+			ret += "{} ".format(hex(int(ap2, 16)))
+
+		return ret
 
 if len(sys.argv) > 1:
 	ins = " ".join(sys.argv[1:])
 else:
 	ins = "SET A PC"
 
-print(ins)
-print(assembly(ins))
+
+def assembly_file(filename):
+	f = open(filename, 'r')
+	print("######################")
+	print("## DCPU16 ASM Code: ##")
+	print("######################")
+	print()
+
+	for line in f:
+		if line.split()[0] != ';':
+			asm = assembly(line[:-1])
+			if asm:
+				print(asm, end=" ")
+			else:
+				print("#", line[:-1], "#")
+				print("#", line.split(), "#")
+				print("WARNING HERE")
+
+	print()
+	print()
+	print("######################")
+
+
+
+
+
+
+######################
+
+#print(ins)
+#print(assembly(ins))
+
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="filename",
+		                  help="Assembly file", metavar="FILE")
+
+(options, args) = parser.parse_args()
+
+if options.filename:
+	f = assembly_file(options.filename)
