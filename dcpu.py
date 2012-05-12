@@ -101,7 +101,14 @@ class DCPU:
 				0x0c : self.ram_Z,
 				0x0e : self.ram_I,
 				0x0f : self.ram_J,
-				#TODO
+				0x10 : self.A_NW,
+				0x11 : self.B_NW,
+				0x12 : self.C_NW,
+				0x13 : self.X_NW,
+				0x14 : self.Y_NW,
+				0x15 : self.Z_NW,
+				0x16 : self.I_NW,
+				0x17 : self.J_NW,
 				0x18 : self.PPOP,
 				0x19 : self.PEEK,
 				0x1a : self.PICK,
@@ -305,28 +312,52 @@ class DCPU:
 	## VALUES
 
 	def ram_A(self, c=None):
-		return self.ram[A]
+		return self.ram[self.A()]
 
 	def ram_B(self, c=None):
-		return self.ram[B()]
+		return self.ram[self.B()]
 
 	def ram_C(self, c=None):
-		return self.ram[C()]
+		return self.ram[self.C()]
 
 	def ram_X(self, c=None):
-		return self.ram[X()]
+		return self.ram[self.X()]
 
 	def ram_Y(self, c=None):
-		return self.ram[Y()]
+		return self.ram[self.Y()]
 
 	def ram_Z(self, c=None):
-		return self.ram[Z()]
+		return self.ram[self.Z()]
 
 	def ram_I(self, c=None):
-		return self.ram[I()]
+		return self.ram[self.I()]
 
 	def ram_J(self, c=None):
-		return self.ram[J()]
+		return self.ram[self.J()]
+
+	def A_NW(self, c=None):
+		return self.ram[A() + self.NW()]
+
+	def B_NW(self, c=None):
+		return self.ram[B() + self.NW()]
+
+	def C_NW(self, c=None):
+		return self.ram[C() + self.NW()]
+
+	def X_NW(self, c=None):
+		return self.ram[X() + self.NW()]
+
+	def Y_NW(self, c=None):
+		return self.ram[Y() + self.NW()]
+
+	def Z_NW(self, c=None):
+		return self.ram[Z() + self.NW()]
+
+	def I_NW(self, c=None):
+		return self.ram[I() + self.NW()]
+
+	def J_NW(self, c=None):
+		return self.ram[J() + self.NW()]
 
 	def PPOP(self, field):
 		if field == '2': #POP
