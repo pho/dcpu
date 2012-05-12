@@ -153,10 +153,6 @@ def assembly_file(filename):
 			asm = assembly(line[:-1])
 			if asm:
 				print(asm, end=" ")
-			else:
-				print("#", line[:-1], "#")
-				print("#", line.split(), "#")
-				print("WARNING HERE")
 
 	print()
 	print()
