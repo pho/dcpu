@@ -169,9 +169,6 @@ def assembly_file(filename):
 
 ######################
 
-#print(ins)
-#print(assembly(ins))
-
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename",
 		                  help="Assembly file", metavar="FILE")
@@ -180,3 +177,7 @@ parser.add_option("-f", "--file", dest="filename",
 
 if options.filename:
 	f = assembly_file(options.filename)
+else:
+	print(ins)
+	print(assembly(ins))
+
