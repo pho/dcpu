@@ -189,6 +189,7 @@ class DCPU:
 			argB( argB()/ argA() )
 		
 	def DVI(self, a, b):
+		#TODO
 		print("DVI not implemented")
 
 	def MOD(self, b, a):
@@ -202,6 +203,7 @@ class DCPU:
 			argB( argB() % argA() )
 
 	def MDI(self, a, b):
+		#TODO
 		print("MDI not implemented")
 
 	def AND(self, b, a):
@@ -225,50 +227,133 @@ class DCPU:
 
 		argB( argB() ^ argA() )
 
-	def SHL(self, a, b):
+	def SHL(self, b, a):
+		# http://stackoverflow.com/a/5833119
 		print("SHL")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
 
-	def SHR(self, a, b):
+		EX(( (argB() << argA() ) >> 16 ) & 0xffff
+		argB( argB() << argA() )
+
+	def SHR(self, b, a):
 		print("SHR")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
 
-	def IFE(self, a, b):
+		EX(( (argB() << 16 ) >> argA() ) & 0xffff
+		argB( (argB() % 0x100000000) >> argA() )
+
+	def IFE(self, b, a):
 		print("IFE")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		if not argB() == argA():
+			self.PCpp()
 
-	def IFL(self, a, b):
+	def IFL(self, b, a):
 		print("IFL")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		if not argB() > argA():
+			self.PCpp()
 
-	def IFA(self, a, b):
+	def IFA(self, b, a):
 		print("IFA")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		#TODO Signed
+		if not argB() > argA():
+			self.PCpp()
 
-	def IFN(self, a, b):
+	def IFN(self, b, a):
 		print("IFN")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		if argB() == argA():
+			self.PCpp()
 
-	def IFU(self, a, b):
-		print("IFU")
+	def IFU(self, b, a):
+		print("IFU" )
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		#TODO Signed
+		if not argB() < argA():
+			self.PCpp()
 
-	def IFG(self, a, b):
+	def IFG(self, b, a):
 		print("IFG")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		#TODO Signed
+		if not argB() < argA():
+			self.PCpp()
 
-	def IFB(self, a, b):
+	def IFB(self, b, a):
 		print("IFB")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		#TODO Signed
+		if not ( argB() & argA() ) != 0:
+			self.PCpp()
 
-	def ADX(self, a, b):
+	def ADX(self, b, a):
 		print("ADX")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
 
-	def ASR(self, a, b):
+		res = argB() + argA() + EX()
+		if res > 0xffff:
+			EX(0x1)
+		else:
+			EX(0x0)
+		argB(res)
+
+	def ASR(self, b, a):
 		print("ASR")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
 
-	def IFC(self, a, b):
-		print("IFC")
+		EX(( ( (argB() << 16 ) % 0x100000000) >> argA() ) & 0xffff)
+		argB( argB() >> argA() )
 
-	def SBX(self, a, b):
+	def IFC(self, b, a):
 		print("IFC")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		#TODO Signed
+		if not ( argB() & argA() ) == 0:
+			self.PCpp()
+
+	def SBX(self, b, a):
+		print("IFC")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+		res = argB() - argA() + EX()
+		if res < 0x0000:
+			EX(0xffff)
+		else:
+			EX(0x0)
+		argB(res)
+
 	
-	def STI(self, a, b):
+	def STI(self, b, a):
 		print("IFC")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
 
-	def STD(self, a, b):
+		argB( argA() )
+		I( I() + 1 )
+		J( J() + 1 )
+
+	def STD(self, b, a):
 		print("IFC")
+		argB = self.resolve(b, '1')
+		argA = self.resolve(a, '2')
+
+		argB( argA() )
+		I( I() - 1 )
+		J( J() - 1 )
 
 ## SOPCODES
 
