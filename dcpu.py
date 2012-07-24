@@ -233,7 +233,7 @@ class DCPU:
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
-		EX(( (argB() << argA() ) >> 16 ) & 0xffff
+		EX(( (argB() << argA() ) >> 16 ) & 0xffff)
 		argB( argB() << argA() )
 
 	def SHR(self, b, a):
@@ -241,7 +241,7 @@ class DCPU:
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
-		EX(( (argB() << 16 ) >> argA() ) & 0xffff
+		EX(( (argB() << 16 ) >> argA() ) & 0xffff)
 		argB( (argB() % 0x100000000) >> argA() )
 
 	def IFE(self, b, a):
