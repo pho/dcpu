@@ -83,6 +83,7 @@ values = { "A"  : 0x00,
 def assembly(buf):
 	ap1=None
 	ap2=None
+	buf = buf.replace(",", " ")
 	i = buf.split()
 
 	if i[0] in opcodes.keys():
@@ -164,20 +165,29 @@ def assembly_file(filename):
 
 
 
-
+def assembly_file_plain(filename):
+	ret = ""
+	f = open(filename, 'r')
+	for line in f:
+		if line.split()[0] != ';':
+			asm = assembly(line[:-1].replace(",", " "))
+			if asm:
+				ret += asm
+	return ret
 
 
 ######################
+if __name__ == "__main__":
+	parser = OptionParser()
+	parser.add_option("-f", "--file", dest="filename",
+							  help="Assembly file", metavar="FILE")
 
-parser = OptionParser()
-parser.add_option("-f", "--file", dest="filename",
-		                  help="Assembly file", metavar="FILE")
+	(options, args) = parser.parse_args()
 
-(options, args) = parser.parse_args()
-
-if options.filename:
-	f = assembly_file(options.filename)
-else:
-	print(ins)
-	print(assembly(ins))
+	if options.filename:
+		f = assembly_file_plain(options.filename)
+		print(f)
+	else:
+		print(ins)
+		print(assembly(ins))
 

@@ -1,5 +1,8 @@
 #!/usr/bin/python3.2
 import sys, types
+from optparse import OptionParser
+
+from assembler import *
 
 
 class Cell(int):
@@ -10,7 +13,7 @@ class Cell(int):
 		if a == None:
 			return self.v
 		else:
-			self.v = (a % 0xffff) 
+			self.v = (a % 0x10000) 
 	def __repr__(self):
 		return str(self.v)
 
@@ -24,7 +27,7 @@ class DCPU:
 			self.ram.append(Cell())
 
 		self.A, self.B, self.C, self.X, self.Y, self.Z, self.I, self.J = \
-			Cell(0x0002),Cell(0x0004),Cell(0x0000),Cell(0x0000),\
+			Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000),\
 			Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
 
 		self.PC, self.SP, self.EX, self.IA = \
@@ -122,7 +125,7 @@ class DCPU:
 				}
 
 	def SET(self, b, a):
-		print("SET", hex(b), hex(a))
+		#print("SET", hex(b), hex(a))
 
 		v1 = self.resolve(b, 'a')
 		v2 = self.resolve(a, 'b')
@@ -130,7 +133,7 @@ class DCPU:
 		v1(v2())
 
 	def ADD(self, a, b):
-		print("ADD", hex(a), hex(b))
+		#print("ADD", hex(a), hex(b))
 
 		v1 = self.resolve(a, 'a')
 		v2 = self.resolve(b, 'b')
@@ -147,7 +150,7 @@ class DCPU:
 		v1(v3)
 
 	def SUB(self, a, b):
-		print("SUB", hex(a), hex(b))
+		#print("SUB", hex(a), hex(b))
 
 		v1 = self.resolve(a, 'a')
 		v2 = self.resolve(b, 'b')
@@ -164,7 +167,7 @@ class DCPU:
 		v1(v3)
 	
 	def MUL(self, b, a):
-		print("MUL", hex(b), hex(a))
+		#print("MUL", hex(b), hex(a))
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -176,7 +179,7 @@ class DCPU:
 		print("MLI not implemented")
 
 	def DIV(self, b, a):
-		print("DIV", hex(b), hex(a))
+		#print("DIV", hex(b), hex(a))
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -193,7 +196,7 @@ class DCPU:
 		print("DVI not implemented")
 
 	def MOD(self, b, a):
-		print("MOD", hex(b), hex(a))
+		#print("MOD", hex(b), hex(a))
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -207,21 +210,21 @@ class DCPU:
 		print("MDI not implemented")
 
 	def AND(self, b, a):
-		print("AND", hex(b), hex(a))
+		#print("AND", hex(b), hex(a))
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
 		argB( argB() & argA() )
 
 	def BOR(self, b, a):
-		print("BOR", hex(b), hex(a))
+		#print("BOR", hex(b), hex(a))
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
 		argB( argB() | argA() )
 
 	def XOR(self, b, a):
-		print("XOR", hex(b), hex(a))
+		#print("XOR", hex(b), hex(a))
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -229,7 +232,7 @@ class DCPU:
 
 	def SHL(self, b, a):
 		# http://stackoverflow.com/a/5833119
-		print("SHL")
+		#print("SHL")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -237,7 +240,7 @@ class DCPU:
 		argB( argB() << argA() )
 
 	def SHR(self, b, a):
-		print("SHR")
+		#print("SHR")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -245,21 +248,21 @@ class DCPU:
 		argB( (argB() % 0x100000000) >> argA() )
 
 	def IFE(self, b, a):
-		print("IFE")
+		#print("IFE")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		if not argB() == argA():
 			self.PCpp()
 
 	def IFL(self, b, a):
-		print("IFL")
+		#print("IFL")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		if not argB() > argA():
 			self.PCpp()
 
 	def IFA(self, b, a):
-		print("IFA")
+		#print("IFA")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		#TODO Signed
@@ -267,14 +270,14 @@ class DCPU:
 			self.PCpp()
 
 	def IFN(self, b, a):
-		print("IFN")
+		#print("IFN")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		if argB() == argA():
 			self.PCpp()
 
 	def IFU(self, b, a):
-		print("IFU" )
+		#print("IFU" )
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		#TODO Signed
@@ -282,7 +285,7 @@ class DCPU:
 			self.PCpp()
 
 	def IFG(self, b, a):
-		print("IFG")
+		#print("IFG")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		#TODO Signed
@@ -295,7 +298,7 @@ class DCPU:
 				self.PCpp()
 
 	def IFB(self, b, a):
-		print("IFB")
+		#print("IFB")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		#TODO Signed
@@ -303,7 +306,7 @@ class DCPU:
 			self.PCpp()
 
 	def ADX(self, b, a):
-		print("ADX")
+		#print("ADX")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -315,7 +318,7 @@ class DCPU:
 		argB(res)
 
 	def ASR(self, b, a):
-		print("ASR")
+		#print("ASR")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -323,7 +326,7 @@ class DCPU:
 		argB( argB() >> argA() )
 
 	def IFC(self, b, a):
-		print("IFC")
+		#print("IFC")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		#TODO Signed
@@ -331,7 +334,7 @@ class DCPU:
 			self.PCpp()
 
 	def SBX(self, b, a):
-		print("SBX")
+		#print("SBX")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		res = argB() - argA() + EX()
@@ -343,7 +346,7 @@ class DCPU:
 
 	
 	def STI(self, b, a):
-		print("STI")
+		#print("STI")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -352,7 +355,7 @@ class DCPU:
 		J( J() + 1 )
 
 	def STD(self, b, a):
-		print("STD")
+		#print("STD")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -389,7 +392,7 @@ class DCPU:
 		print("JSR", a)
 
 	def JSR(self, a):
-		print("JSR")
+		#print("JSR")
 		self.SP( self.PC() + 1)
 		self.PC(a)
 
@@ -456,12 +459,11 @@ class DCPU:
 	def PPOP(self, field):
 		if field == 'b': #POP
 			v = self.ram[self.SP()]
-			if self.SP() > (self.SP() + 0x0001) % 0xffff:
-				print("STACK BOTTOM")
-				return v
+			#Stack can overwrite code
+			#if self.SP() > (self.SP() + 0x0001) % 0x10000:
+			#	return v
 
-			self.SP( (self.SP() + 0x0001 ) % 0xffff )
-			print(self.SP())
+			self.SP( (self.SP() + 0x0001 ) % 0x10000 )
 			return v
 
 		else: 			 #PUSH
@@ -486,12 +488,12 @@ class DCPU:
 
 	def NW(self, field=None):
 		self.PCpp()
-		print("nextword:", hex(self.ram[self.PC()]()))
+		#print("nextword:", hex(self.ram[self.PC()]()))
 		return self.ram[self.PC()]
 
 	def ramNW(self, field=None):
 		self.PCpp()
-		print("[nextword]:", hex(self.ram[self.ram[self.PC()]]))
+		#print("[nextword]:", hex(self.ram[self.ram[self.PC()]]))
 		return self.ram[self.ram[self.PC()]]
 
 
@@ -525,7 +527,7 @@ class DCPU:
 
 	def ejec(self, i):
 		(o, a, b) = self.decode(i)
-		print( "OPCODE: ", hex(o))
+		#print( "OPCODE: ", hex(o))
 		self.opcodes[o](b, a)
 
 	def dumpRam(self, i=None):
@@ -560,7 +562,7 @@ class DCPU:
 			self.ram[i](buf[i])
 	
 	def dumpReg(self):
-		print("\n ## REGISTERS ######################################################")
+		print(" ## REGISTERS ######################################################")
 		print("  A: {:>6}  B: {:>6}  C: {:>6}  X: {:>6}  Y: {:>6}  Z: {:>6} ".format(\
 				hex(self.A()), hex(self.B()), hex(self.C()), hex(self.X()), hex(self.Y()), hex(self.Z()) ))
 		print("  I: {:>6}  J: {:>6} PC: {:>6} SP: {:>6} EX: {:>6} IA: {:>6}".format(\
@@ -569,25 +571,62 @@ class DCPU:
 
 cpu = DCPU()
 
-if len(sys.argv) > 1:
-	ins = list(map(lambda x: int(x, 16), sys.argv[1:]))
-	print("STDIN:", ins)
+
+
+######################
+
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="filename",
+		                  help="Assembly file", metavar="FILE")
+
+parser.add_option("-s", "--step", action="store_true", dest="step",
+		                  help="Execution step-by-step")
+
+parser.add_option("-d", "--debug", dest="debug", action="store_true",
+		                  help="Show every instruction executed", metavar="DEBUG")
+
+(options, args) = parser.parse_args()
+
+if options.filename:
+	print("Loading", options.filename + "...", end="")
+	f = assembly_file_plain(options.filename)
+	code = list(map(lambda x: int(x, 16), f.split(" ")[:-1]))
+	cpu.setRam(code)
+	print(" done\n")
 else:
-	ins = [0x0401, 0x0402]
-cpu.setRam(ins)
+	if args:
+		ins = list(map(lambda x: int(x, 16), args))
+		print("STDIN:", ins)
+	else:
+		#ins = [0x0401, 0x0402]
+		ins = []
+	cpu.setRam(ins)
 
 i = cpu.ram[cpu.PC()]()
-print("\n>>-------------<<\n")
-
+c = 0
 while i != 0x0000:
-#or k in range(0, 3):
+	try: 
+		if options.debug or options.step:
+			print(" ## Cycle", c, ":", hex(cpu.ram[cpu.PC()]())) 
 
-	print("ins:", hex(cpu.ram[cpu.PC()]())) 
-	cpu.ejec(cpu.ram[cpu.PC()]())
-	cpu.PCpp()
-	i = cpu.ram[cpu.PC()]()
-	print("\n>>-------------<<\n")
+			cpu.dumpReg()
+			cpu.dumpRam(80)
+			cpu.dumpStack()
 
+		if options.step:
+			input()
+
+		cpu.ejec(cpu.ram[cpu.PC()]())
+		cpu.PCpp()
+		i = cpu.ram[cpu.PC()]()
+
+		
+		c+=1
+	except:
+		break
+
+if options.debug:
+	print(" ## END ##")
 
 cpu.dumpReg()
 cpu.dumpRam(80)
