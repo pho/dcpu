@@ -67,8 +67,10 @@ values = { "A"  : 0x00,
 		   "[I]"  : 0x0e,
 		   "[J]"  : 0x0f,
 		   #TODO
-		   "PPOP" : 0x18,
+		   "POP"  : 0x18,
+		   "PUSH" : 0x18,
 		   "[SP]" : 0x19,
+		   "PEEK" : 0x19,
 		   "PICK" : 0x1a,
 		   "SP" : 0x1b,
 		   "PC" : 0x1c,
@@ -92,6 +94,7 @@ def assembly(buf):
 			b = values[i[1]]
 		#	print("b:", hex(b))
 		except:
+			#if we find POP in b, should warn about a syntax error
 			r = re.match("^\[(0x..?.?.?)\]$", i[1])
 			if r:
 				b = values["NEXTW"]
@@ -102,7 +105,7 @@ def assembly(buf):
 					b = values["NEXTWL"]
 					ap1 = r.group(1)
 				else:
-					print("WRONG INSTRUCTION:", buf)
+					print("WRONG INSTRUCTION:", buf, "(b operand)")
 					sys.exit(-1)
 
 
@@ -111,6 +114,7 @@ def assembly(buf):
 			a = values[i[2]]
 			#print("a:", hex(a))
 		except:
+			#if we find PUSH in a, should warn about a syntax error
 			r = re.match("^\[(0x..?.?.?)\]$", i[2])
 			if r:
 				a = values["NEXTW"]
@@ -122,7 +126,7 @@ def assembly(buf):
 					a = values["NEXTWL"]
 					ap2 = r.group(1)
 				else:
-					print("WRONG INSTRUCTION:", buf)
+					print("WRONG INSTRUCTION:", buf, "(a operand)")
 					sys.exit(-1)
 		
 		ret = "{} ".format(hex((((a<<5) + b)<<5) + o) )

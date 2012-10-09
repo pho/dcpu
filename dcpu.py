@@ -28,7 +28,7 @@ class DCPU:
 			Cell(0x0000),Cell(0x0000),Cell(0x0000),Cell(0x0000)
 
 		self.PC, self.SP, self.EX, self.IA = \
-			Cell(0x0000),Cell(0x0000),Cell(0x0000), Cell(0x0000)
+			Cell(0x0000),Cell(0xffff),Cell(0x0000), Cell(0x0000)
 		
 		self.opcodes = {
 				0x0 : self.sopcode,
@@ -168,7 +168,7 @@ class DCPU:
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
-		EX(((argB()*argA())>>16)&0xffff)
+		self.EX(((argB()*argA())>>16)&0xffff)
 
 		argB( argA() * argB() )
 
@@ -286,8 +286,13 @@ class DCPU:
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		#TODO Signed
-		if not argB() < argA():
+		if  argB() <= argA():
 			self.PCpp()
+
+			#if next instr. has a literal, skip ip too
+			(no, na, nb) = self.decode(self.ram[self.PC()]())
+			if na == 0x1f or nb == 0x1f or na == 0x1e or nb == 0x1e:
+				self.PCpp()
 
 	def IFB(self, b, a):
 		print("IFB")
@@ -326,7 +331,7 @@ class DCPU:
 			self.PCpp()
 
 	def SBX(self, b, a):
-		print("IFC")
+		print("SBX")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 		res = argB() - argA() + EX()
@@ -338,7 +343,7 @@ class DCPU:
 
 	
 	def STI(self, b, a):
-		print("IFC")
+		print("STI")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -347,7 +352,7 @@ class DCPU:
 		J( J() + 1 )
 
 	def STD(self, b, a):
-		print("IFC")
+		print("STD")
 		argB = self.resolve(b, '1')
 		argA = self.resolve(a, '2')
 
@@ -357,19 +362,21 @@ class DCPU:
 
 ## SOPCODES
 
-	def INT(self, a, b):
+	def INT(self, a):
 		print("IFC")
 
-	def IAG(self, a, b):
+	def IAG(self, a):
+		print("IAG")
+		self.ram[a](self.IA())
+
+	def IAS(self, a):
+		print("IAS")
+		self.IA(a)
+
+	def RFI(self, a):
 		print("IFC")
 
-	def IAS(self, a, b):
-		print("IFC")
-
-	def RFI(self, a, b):
-		print("IFC")
-
-	def IAQ(self, a, b):
+	def IAQ(self, a):
 		print("IFC")
 
 	def HWN(self, a):
@@ -382,7 +389,9 @@ class DCPU:
 		print("JSR", a)
 
 	def JSR(self, a):
-		print("JSR", a)
+		print("JSR")
+		self.SP( self.PC() + 1)
+		self.PC(a)
 
 	def sopcode(self, o, a):
 		print("SPECIALOP", hex(a))
@@ -445,12 +454,18 @@ class DCPU:
 		return self.ram[J() + self.NW()]
 
 	def PPOP(self, field):
-		if field == '2': #POP
-			self.SP( self.SP() - 0x0001 )
-			return self.ram[self.SP()]
+		if field == 'b': #POP
+			v = self.ram[self.SP()]
+			if self.SP() > (self.SP() + 0x0001) % 0xffff:
+				print("STACK BOTTOM")
+				return v
+
+			self.SP( (self.SP() + 0x0001 ) % 0xffff )
+			print(self.SP())
+			return v
 
 		else: 			 #PUSH
-			self.SP( self.SP() + 0x0001 )
+			self.SP( self.SP() - 0x0001 )
 			return self.ram[self.SP()]
 
 
@@ -458,12 +473,14 @@ class DCPU:
 		return self.ram[self.SP()]
 
 	def PICK(self, c=None): 
-		return self.ram[ self.SP() + self.PCpp() ]
+		return self.ram[ self.SP() + self.NW() ]
 
 	def PCpp(self, c=None):
 		self.PC( self.PC() + 0x0001 )
 		return self.PC()
 		
+
+	#unused?
 	def ramSP(self, c=None):
 		return self.ram[self.SP()]
 
@@ -524,6 +541,20 @@ class DCPU:
 			print()
 		print(" ###################################################################\n")
 
+	def dumpStack(self, i=None):
+		print("\n ## STACK DUMP #####################################################")
+		if i == None:
+			r = self.SP() % 8
+			length = self.SP() - r
+		else: 
+			length = 0xffff - i
+		for i in range(length, 0xffff, 8):
+			print( "{0:>8}: ".format(hex(i)), end="" )
+			for j in range(0, 8):
+				print( "{0:>6} ".format(hex(self.ram[i+j]())), end="")
+			print()
+		print(" ###################################################################\n")
+
 	def setRam(self, buf):
 		for i in range(0, len(buf)):
 			self.ram[i](buf[i])
@@ -557,7 +588,8 @@ while i != 0x0000:
 	i = cpu.ram[cpu.PC()]()
 	print("\n>>-------------<<\n")
 
+
 cpu.dumpReg()
 cpu.dumpRam(80)
-	
+cpu.dumpStack()
 
