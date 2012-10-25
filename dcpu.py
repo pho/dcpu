@@ -1,4 +1,4 @@
-#!/usr/bin/python3.2
+#!/usr/bin/python
 import sys, types
 from optparse import OptionParser
 
@@ -253,6 +253,7 @@ class DCPU:
 		argA = self.resolve(a, '2')
 		if not argB() == argA():
 			self.PCpp()
+			self.skipLiteral()
 
 	def IFL(self, b, a):
 		#print("IFL")
@@ -260,6 +261,7 @@ class DCPU:
 		argA = self.resolve(a, '2')
 		if not argB() > argA():
 			self.PCpp()
+			self.skipLiteral()
 
 	def IFA(self, b, a):
 		#print("IFA")
@@ -268,6 +270,7 @@ class DCPU:
 		#TODO Signed
 		if not argB() > argA():
 			self.PCpp()
+			self.skipLiteral()
 
 	def IFN(self, b, a):
 		#print("IFN")
@@ -275,6 +278,7 @@ class DCPU:
 		argA = self.resolve(a, '2')
 		if argB() == argA():
 			self.PCpp()
+			self.skipLiteral()
 
 	def IFU(self, b, a):
 		#print("IFU" )
@@ -283,6 +287,7 @@ class DCPU:
 		#TODO Signed
 		if not argB() < argA():
 			self.PCpp()
+			self.skipLiteral()
 
 	def IFG(self, b, a):
 		#print("IFG")
@@ -291,11 +296,7 @@ class DCPU:
 		#TODO Signed
 		if  argB() <= argA():
 			self.PCpp()
-
-			#if next instr. has a literal, skip ip too
-			(no, na, nb) = self.decode(self.ram[self.PC()]())
-			if na == 0x1f or nb == 0x1f or na == 0x1e or nb == 0x1e:
-				self.PCpp()
+			self.skipLiteral()
 
 	def IFB(self, b, a):
 		#print("IFB")
@@ -304,6 +305,7 @@ class DCPU:
 		#TODO Signed
 		if not ( argB() & argA() ) != 0:
 			self.PCpp()
+			self.skipLiteral()
 
 	def ADX(self, b, a):
 		#print("ADX")
@@ -332,6 +334,7 @@ class DCPU:
 		#TODO Signed
 		if not ( argB() & argA() ) == 0:
 			self.PCpp()
+			self.skipLiteral()
 
 	def SBX(self, b, a):
 		#print("SBX")
@@ -480,7 +483,13 @@ class DCPU:
 	def PCpp(self, c=None):
 		self.PC( self.PC() + 0x0001 )
 		return self.PC()
-		
+	
+	def skipLiteral(self):
+		#if next instr. has a literal, skip ip too
+		(no, na, nb) = self.decode(self.ram[self.PC()]())
+		if na == 0x1f or nb == 0x1f or na == 0x1e or nb == 0x1e:
+			self.PCpp()
+
 
 	#unused?
 	def ramSP(self, c=None):
