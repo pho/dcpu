@@ -3,6 +3,7 @@ import sys, types
 from optparse import OptionParser
 
 from assembler import *
+from devices import *
 
 
 class Cell(int):
@@ -123,6 +124,9 @@ class DCPU:
 
 				#0x20-0x3f is treated as exception
 				}
+
+		self.intqEnabled = False
+		self.devices = []
 
 	def SET(self, b, a):
 		#print("SET", hex(b), hex(a))
@@ -369,34 +373,60 @@ class DCPU:
 ## SOPCODES
 
 	def INT(self, a):
-		print("IFC")
+		if self.IA() != 0:
+			self.intqEnabled = True
+
+			self.ram[self.SP()] = self.PC()
+			self.SP( (self.SP() - 0x0001 ) % 0x10000 )
+
+			self.ram[self.SP()] = self.A()
+			self.SP( (self.SP() - 0x0001 ) % 0x10000 )
+
+			self.PC(self.IA())
+			self.A(a)
 
 	def IAG(self, a):
-		print("IAG")
-		self.ram[a](self.IA())
+		a( self.IA() )
 
 	def IAS(self, a):
 		print("IAS")
-		self.IA(a)
+		self.IA( a() )
 
 	def RFI(self, a):
-		print("IFC")
+		v = self.ram[self.SP()]
+		self.SP( (self.SP() + 0x0001 ) % 0x10000 )
+		
+		self.A( v() )
+
+		v = self.ram[self.SP()]
+		self.SP( (self.SP() + 0x0001 ) % 0x10000 )
+
+		self.PC( v() )
 
 	def IAQ(self, a):
-		print("IFC")
+		if a() == 0:
+			self.intqEnabled = False
+		else:
+			self.intqEnabled = True
 
 	def HWN(self, a):
-		print("JSR", a)
+		a( len(self.devices) )
 
 	def HWQ(self, a):
-		print("JSR", a)
+		(A, B, C, X, Y) = self.devices[a()].get_info()
+		self.A(A)
+		self.B(B)
+		self.C(C)
+		self.X(X)
+		self.Y(Y)
 
 	def HWI(self, a):
-		print("JSR", a)
+		self.devices[a()].hwi(self)
 
 	def JSR(self, a):
 		#print("JSR")
-		self.SP( self.PC() + 1)
+		self.ram[self.SP()] = self.PC() + 1
+		self.SP( (self.SP() - 0x0001 ) % 0x10000 )
 		self.PC(a)
 
 	def sopcode(self, o, a):
@@ -470,7 +500,7 @@ class DCPU:
 			return v
 
 		else: 			 #PUSH
-			self.SP( self.SP() - 0x0001 )
+			self.SP( (self.SP() - 0x0001 ) % 0x10000 )
 			return self.ram[self.SP()]
 
 
@@ -490,6 +520,8 @@ class DCPU:
 		if na == 0x1f or nb == 0x1f or na == 0x1e or nb == 0x1e:
 			self.PCpp()
 
+	def attachDevice(self, device):
+		self.devices.append(device)
 
 	#unused?
 	def ramSP(self, c=None):
