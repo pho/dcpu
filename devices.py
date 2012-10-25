@@ -16,7 +16,11 @@ class Device:
 		pass
 					
 
-class Monitor(Device):
+class LEM1802(Device):
+
+	def __init__(self):
+		super(LEM1802, self).__init__("LEM1802", 0x7349, 0xf615, 0x1802, 0x1c6c, 0x8b36)
 
 	def hwi(self, dcpu):
 		print("IM THE MONITOR LOL")
+		print("DCPU A:{} B:{}".format(hex(dcpu.A()), hex(dcpu.B())))

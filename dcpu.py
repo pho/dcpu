@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys, types
 from optparse import OptionParser
+from collections import deque
 
 from assembler import *
 from devices import *
@@ -126,7 +127,9 @@ class DCPU:
 				}
 
 		self.intqEnabled = False
+		self.intQueue = deque()
 		self.devices = []
+		self.state = "PAUSED"
 
 	def SET(self, b, a):
 		#print("SET", hex(b), hex(a))
@@ -374,16 +377,20 @@ class DCPU:
 
 	def INT(self, a):
 		if self.IA() != 0:
-			self.intqEnabled = True
+			if self.intqEnabled == True:
+				self.intQueue.append(a)
 
-			self.ram[self.SP()] = self.PC()
-			self.SP( (self.SP() - 0x0001 ) % 0x10000 )
+			else:
+				self.intqEnabled = True
 
-			self.ram[self.SP()] = self.A()
-			self.SP( (self.SP() - 0x0001 ) % 0x10000 )
+				self.ram[self.SP()] = self.PC()
+				self.SP( (self.SP() - 0x0001 ) % 0x10000 )
 
-			self.PC(self.IA())
-			self.A(a)
+				self.ram[self.SP()] = self.A()
+				self.SP( (self.SP() - 0x0001 ) % 0x10000 )
+
+				self.PC(self.IA())
+				self.A(a)
 
 	def IAG(self, a):
 		a( self.IA() )
@@ -403,6 +410,8 @@ class DCPU:
 
 		self.PC( v() )
 
+		self.intqEnabled = False
+
 	def IAQ(self, a):
 		if a() == 0:
 			self.intqEnabled = False
@@ -410,6 +419,8 @@ class DCPU:
 			self.intqEnabled = True
 
 	def HWN(self, a):
+		print(a)
+		print(len(self.devices))
 		a( len(self.devices) )
 
 	def HWQ(self, a):
@@ -424,15 +435,15 @@ class DCPU:
 		self.devices[a()].hwi(self)
 
 	def JSR(self, a):
-		#print("JSR")
 		self.ram[self.SP()] = self.PC() + 1
 		self.SP( (self.SP() - 0x0001 ) % 0x10000 )
 		self.PC(a)
 
 	def sopcode(self, o, a):
-		print("SPECIALOP", hex(a))
+		#print("SPECIALOP", hex(a))
 		try:
-			self.sopcodes[o](a)
+			argA = self.resolve(a, '1')
+			self.sopcodes[o](argA)
 		except (KeyError):
 			if o >= 0x02 and o <=0x3f:
 					print("RESERVED OPCODE:", hex(o))
@@ -610,9 +621,27 @@ class DCPU:
 				hex(self.I()), hex(self.J()), hex(self.PC()), hex(self.SP()), hex(self.EX()), hex(self.IA())))
 		print(" ###################################################################")
 
+
+	def checkInt(self):
+		if self.IA() != 0 and len(self.intQueue) > 0 and self.intqEnabled == False:
+			intcode = self.intQueue.popleft()
+			self.INT(self, intcode)
+	
+	def run(self):
+		i = cpu.ram[cpu.PC()]()
+
+		if i != 0x0000:
+			self.checkInt()
+			self.ejec(self.ram[self.PC()]())
+			self.PCpp()
+			self.state = "RUNNING"
+		else:
+			self.state = "STOPPED"
+
+
 cpu = DCPU()
-
-
+monitor = LEM1802()
+cpu.attachDevice(monitor)
 
 ######################
 
@@ -643,28 +672,24 @@ else:
 		ins = []
 	cpu.setRam(ins)
 
+
+
 i = cpu.ram[cpu.PC()]()
 c = 0
-while i != 0x0000:
-	try: 
-		if options.debug or options.step:
-			print(" ## Cycle", c, ":", hex(cpu.ram[cpu.PC()]())) 
+while cpu.state != "STOPPED":
+	if options.debug or options.step:
+		print(" ## Cycle", c, ":", hex(cpu.ram[cpu.PC()]())) 
 
-			cpu.dumpReg()
-			cpu.dumpRam(80)
-			cpu.dumpStack()
+		cpu.dumpReg()
+		cpu.dumpRam(80)
+		cpu.dumpStack()
 
-		if options.step:
-			input()
+	if options.step:
+		input()
 
-		cpu.ejec(cpu.ram[cpu.PC()]())
-		cpu.PCpp()
-		i = cpu.ram[cpu.PC()]()
-
-		
-		c+=1
-	except:
-		break
+	cpu.run()
+	
+	c+=1
 
 if options.debug:
 	print(" ## END ##")
