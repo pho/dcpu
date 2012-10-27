@@ -6,6 +6,20 @@ import dcpu
 from assembler import *
 from devices import *
 
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="filename",
+						  help="Assembly file", metavar="FILE")
+
+parser.add_option("-s", "--step", action="store_true", dest="step",
+						  help="Execution step-by-step")
+
+parser.add_option("-l", "--slow", action="store_true", dest="slow",
+						  help="Put a delay after every instruction")
+
+parser.add_option("-d", "--debug", dest="debug", action="store_true",
+						  help="Show every instruction executed", metavar="DEBUG")
+
+(options, args) = parser.parse_args()
 stdscr = curses.initscr()
 
 ## Setup
@@ -40,6 +54,7 @@ monitor = curses.newwin(14, 34, cby + 1 , max( cbw+2, scrmaxx - 34 -2 ) )
 monitor.border()
 
 stdscr.addstr(1, 3, "DCPU-16 Emulator")
+stdscr.addstr( scrmaxy - 2, 3, "r: run    s: step    q: quit")
 
 ###
 
@@ -86,23 +101,10 @@ cpu = dcpu.DCPU()
 
 ######################
 
-parser = OptionParser()
-parser.add_option("-f", "--file", dest="filename",
-						  help="Assembly file", metavar="FILE")
-
-parser.add_option("-s", "--step", action="store_true", dest="step",
-						  help="Execution step-by-step")
-
-parser.add_option("-l", "--slow", action="store_true", dest="slow",
-						  help="Put a delay after every instruction")
-
-parser.add_option("-d", "--debug", dest="debug", action="store_true",
-						  help="Show every instruction executed", metavar="DEBUG")
-
-(options, args) = parser.parse_args()
 
 if options.filename:
-	print("Loading", options.filename + "...", end="")
+	#print("Loading", options.filename + "...", end="")
+	stdscr.addstr(2, max( cbw+2, scrmaxx - 34 -2 ), "File loaded: {}".format(options.filename))
 	f = assembly_file_plain(options.filename)
 	code = list(map(lambda x: int(x, 16), f.split(" ")[:-1]))
 	cpu.setRam(code)
