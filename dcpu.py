@@ -628,7 +628,7 @@ class DCPU:
 			self.INT(self, intcode)
 	
 	def run(self):
-		i = cpu.ram[cpu.PC()]()
+		i = self.ram[self.PC()]()
 
 		if i != 0x0000:
 			self.checkInt()
@@ -638,63 +638,63 @@ class DCPU:
 		else:
 			self.state = "STOPPED"
 
-
-cpu = DCPU()
-monitor = LEM1802()
-cpu.attachDevice(monitor)
+if __name__ == "__main__":
+	cpu = DCPU()
+	monitor = LEM1802()
+	cpu.attachDevice(monitor)
 
 ######################
 
-parser = OptionParser()
-parser.add_option("-f", "--file", dest="filename",
-		                  help="Assembly file", metavar="FILE")
+	parser = OptionParser()
+	parser.add_option("-f", "--file", dest="filename",
+							  help="Assembly file", metavar="FILE")
 
-parser.add_option("-s", "--step", action="store_true", dest="step",
-		                  help="Execution step-by-step")
+	parser.add_option("-s", "--step", action="store_true", dest="step",
+							  help="Execution step-by-step")
 
-parser.add_option("-d", "--debug", dest="debug", action="store_true",
-		                  help="Show every instruction executed", metavar="DEBUG")
+	parser.add_option("-d", "--debug", dest="debug", action="store_true",
+							  help="Show every instruction executed", metavar="DEBUG")
 
-(options, args) = parser.parse_args()
+	(options, args) = parser.parse_args()
 
-if options.filename:
-	print("Loading", options.filename + "...", end="")
-	f = assembly_file_plain(options.filename)
-	code = list(map(lambda x: int(x, 16), f.split(" ")[:-1]))
-	cpu.setRam(code)
-	print(" done\n")
-else:
-	if args:
-		ins = list(map(lambda x: int(x, 16), args))
-		print("STDIN:", ins)
+	if options.filename:
+		print("Loading", options.filename + "...", end="")
+		f = assembly_file_plain(options.filename)
+		code = list(map(lambda x: int(x, 16), f.split(" ")[:-1]))
+		cpu.setRam(code)
+		print(" done\n")
 	else:
-		#ins = [0x0401, 0x0402]
-		ins = []
-	cpu.setRam(ins)
+		if args:
+			ins = list(map(lambda x: int(x, 16), args))
+			print("STDIN:", ins)
+		else:
+			#ins = [0x0401, 0x0402]
+			ins = []
+		cpu.setRam(ins)
 
 
 
-i = cpu.ram[cpu.PC()]()
-c = 0
-while cpu.state != "STOPPED":
-	if options.debug or options.step:
-		print(" ## Cycle", c, ":", hex(cpu.ram[cpu.PC()]())) 
+	i = cpu.ram[cpu.PC()]()
+	c = 0
+	while cpu.state != "STOPPED":
+		if options.debug or options.step:
+			print(" ## Cycle", c, ":", hex(cpu.ram[cpu.PC()]())) 
 
-		cpu.dumpReg()
-		cpu.dumpRam(80)
-		cpu.dumpStack()
+			cpu.dumpReg()
+			cpu.dumpRam(80)
+			cpu.dumpStack()
 
-	if options.step:
-		input()
+		if options.step:
+			input()
 
-	cpu.run()
-	
-	c+=1
+		cpu.run()
+		
+		c+=1
 
-if options.debug:
-	print(" ## END ##")
+	if options.debug:
+		print(" ## END ##")
 
-cpu.dumpReg()
-cpu.dumpRam(80)
-cpu.dumpStack()
+	cpu.dumpReg()
+	cpu.dumpRam(80)
+	cpu.dumpStack()
 
