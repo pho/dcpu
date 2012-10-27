@@ -6,6 +6,8 @@ import dcpu
 from assembler import *
 from devices import *
 
+
+## Options Parsing
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename",
 						  help="Assembly file", metavar="FILE")
@@ -20,12 +22,13 @@ parser.add_option("-d", "--debug", dest="debug", action="store_true",
 						  help="Show every instruction executed", metavar="DEBUG")
 
 (options, args) = parser.parse_args()
-stdscr = curses.initscr()
 
 ## Setup
+stdscr = curses.initscr()
 curses.noecho()
-#stdscr.nodelay(1)
 curses.curs_set(0)
+
+
 ##
 stdscr.border()
 (scry, scrx) = stdscr.getbegyx()
@@ -97,10 +100,8 @@ def dumpStack(dcpu, i=None):
 
 
 cpu = dcpu.DCPU()
-#cpu.attachDevice(monitor)
-
-######################
-
+lem = LEM1802()
+cpu.attachDevice(lem)
 
 if options.filename:
 	#print("Loading", options.filename + "...", end="")
@@ -158,6 +159,7 @@ while 1:
 		c = stdscr.getch()
 		if c == ord('q'):
 			break
+
 		if c == ord('r'):
 			cpu.PC(0x0)
 			cpu.SP(0xffff)
