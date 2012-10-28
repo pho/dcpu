@@ -27,6 +27,7 @@ parser.add_option("-d", "--debug", dest="debug", action="store_true",
 stdscr = curses.initscr()
 curses.noecho()
 curses.curs_set(0)
+curses.start_color()
 
 
 ##
@@ -51,10 +52,9 @@ stack = cpuinfo.subwin(ramy, cbw -2, cby + 5 + ramy, cbx + 1)
 stack.border()
 stack.addstr(0, 3, "STACK DUMP")
 
-cpuinfo.addstr( cby + 5 + ramy*2, cbx +1 , "n = NextStep")
-
 monitor = curses.newwin(14, 34, cby + 1 , max( cbw+2, scrmaxx - 34 -2 ) )
 monitor.border()
+
 
 stdscr.addstr(1, 3, "DCPU-16 Emulator")
 stdscr.addstr( scrmaxy - 2, 3, "r: run    s: step    q: quit")
@@ -95,7 +95,13 @@ def dumpStack(dcpu, i=None):
 			ret += "{0:>6} ".format(hex(dcpu.ram[i+j]()))
 		stack.addstr( (i-length)//8 +1, 1, ret)
 		
+def renderLEM(lem):
+	## WONTFIX curses on python doesnt support all the color codes we need :(
+	#for i in range(32):
+	#	for j in range(12):
+	#		(char, B, b, f) = lem.decodeColor(lem.ram[i+j]())
 
+	monitor.addstr(7, 7, "Rendering not suppoted :(")
 
 
 
