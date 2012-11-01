@@ -160,6 +160,8 @@ while 1:
 		dumpRam(cpu, 8*(ramy-2))
 		dumpStack(cpu, 8*(ramy-2))
 
+		lem.render()
+
 	else:
 		stdscr.nodelay(1)
 		c = stdscr.getch()

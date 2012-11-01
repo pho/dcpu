@@ -641,6 +641,7 @@ class DCPU:
 if __name__ == "__main__":
 	cpu = DCPU()
 	monitor = LEM1802()
+	monitor.render()
 	cpu.attachDevice(monitor)
 
 ######################
