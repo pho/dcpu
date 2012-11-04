@@ -376,6 +376,7 @@ class DCPU:
 ## SOPCODES
 
 	def INT(self, a):
+		argA = self.resolve(a, '1')
 		if self.IA() != 0:
 			if self.intqEnabled == True:
 				self.intQueue.append(a)
@@ -390,14 +391,15 @@ class DCPU:
 				self.SP( (self.SP() - 0x0001 ) % 0x10000 )
 
 				self.PC(self.IA())
-				self.A(a)
+				self.A(argA())
 
 	def IAG(self, a):
-		a( self.IA() )
+		argA = self.resolve(a, '1')
+		argA( self.IA() )
 
 	def IAS(self, a):
-		print("IAS")
-		self.IA( a() )
+		argA = self.resolve(a, '1')
+		self.IA( argA() )
 
 	def RFI(self, a):
 		v = self.ram[self.SP()]
@@ -413,18 +415,19 @@ class DCPU:
 		self.intqEnabled = False
 
 	def IAQ(self, a):
-		if a() == 0:
+		argA = self.resolve(a, '1')
+		if argA() == 0:
 			self.intqEnabled = False
 		else:
 			self.intqEnabled = True
 
 	def HWN(self, a):
-		print(a)
-		print(len(self.devices))
-		a( len(self.devices) )
+		argA = self.resolve(a, '1')
+		argA( len(self.devices) )
 
 	def HWQ(self, a):
-		(A, B, C, X, Y) = self.devices[a()].get_info()
+		argA = self.resolve(a, '1')
+		(A, B, C, X, Y) = self.devices[argA()].get_info()
 		self.A(A)
 		self.B(B)
 		self.C(C)
@@ -432,7 +435,8 @@ class DCPU:
 		self.Y(Y)
 
 	def HWI(self, a):
-		self.devices[a].hwi(self)
+		argA = self.resolve(a, '1')
+		self.devices[argA()].hwi(self)
 
 	def JSR(self, a):
 		self.ram[self.SP()] = self.PC() + 1
@@ -443,6 +447,7 @@ class DCPU:
 		#print("SPECIALOP", hex(a))
 		try:
 			argA = self.resolve(a, '1')
+			
 			self.sopcodes[o](argA)
 		except (KeyError):
 			if o >= 0x02 and o <=0x3f:
