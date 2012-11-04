@@ -38,15 +38,15 @@ opcodes = { "SET" : 0x01,
 
 sopcodes= {	"JSR" : 0x0100000,
 
-			"INT" : 0x0800000,
-			"IAG" : 0x0900000,
-			"IAS" : 0x0a00000,
-			"RFI" : 0x0b00000,
-			"IAQ" : 0x0c00000,
+			"INT" : 0x08,
+			"IAG" : 0x09,
+			"IAS" : 0x0a,
+			"RFI" : 0x0b,
+			"IAQ" : 0x0c,
 
-			"HWN" : 0x1000000,
-			"HWQ" : 0x1100000,
-			"HWI" : 0x1200000,
+			"HWN" : 0x10,
+			"HWQ" : 0x11,
+			"HWI" : 0x12,
 
 			}
 
@@ -139,6 +139,43 @@ def assembly(buf):
 			ret += "{} ".format(hex(int(ap2, 16)))
 
 		return ret
+
+	elif i[0] in sopcodes.keys():
+		sop = sopcodes[i[0]]
+		
+		# Get a
+		try:
+			a = values[i[1]]
+
+		except:
+			#if we find PUSH in a, should warn about a syntax error
+			r = re.match("^\[(0x..?.?.?)\]$", i[1])
+			if r:
+				a = values["NEXTW"]
+				ap1 = r.group(1)
+
+			else:
+				r = re.match("^(0x..?.?.?)$", i[1])
+				if r:
+					a = values["NEXTWL"]
+					ap1 = r.group(1)
+				else:
+					print("WRONG INSTRUCTION:", buf, "(a operand)")
+					sys.exit(-1)
+
+		ret = "{} ".format(hex((((a<<6) + sop)<<5) + 0x00000) )
+
+		if ap1:
+			ret += "{} ".format(hex(int(ap1, 16)))
+
+		return ret
+
+	else:
+		print("WTF!")
+
+
+
+
 
 if len(sys.argv) > 1:
 	ins = " ".join(sys.argv[1:])

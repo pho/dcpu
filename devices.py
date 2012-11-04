@@ -18,7 +18,8 @@ class Device:
 					
 try:
 	import pygame
-
+	import font
+	from time import sleep
 
 	class LEM1802(Device):
 
@@ -32,16 +33,42 @@ try:
 				self.ram.append(0x0) # CELLS?
 
 			pygame.init()
-			self.size = (320, 240)
+			self.size = (512, 384)
 			self.screen = pygame.display.set_mode(self.size)
+			self.font = font.font
+			self.palette = {
+					0  : "#000000",
+					1  : "#0000aa",
+					2  : "#00aa00",
+					3  : "#00aaaa",
+					4  : "#aa0000",
+					5  : "#aa00aa",
+					6  : "#aa5500",
+					7  : "#aaaaaa",
+					8  : "#555555",
+					9  : "#5555ff",
+					10 : "#55ff55",
+					11 : "#55ffff",
+					12 : "#ff5555",
+					13 : "#ff55ff",
+					14 : "#ffff55",
+					16 : "#ffffff"
+					}
 		
 		def render(self):
-			if self.changed:
+			#if self.changed:
 				for i in range(12):
 					for j in range(32):
-						rect = pygame.Rect(j*10, i*20, 9, 18)
-						(char, B, f, b) = self.decodeColor(self.ram[i+j])
-						pygame.draw.rect(self.screen, pygame.Color("#00ff00"), rect)
+						(char, B, f, b) = self.decodeColor(self.ram[ (i*32) + j ])
+						bg = pygame.Rect(j*16, i*32, 16, 32)
+						pygame.draw.rect(self.screen, pygame.Color(self.palette[b]), bg)
+						
+						for k in range(8):
+							for l in range(4):
+								if (self.font[( char + 224*(char//32) ) + 32 * k ])>>l&0x1:
+										Mc_pixel = pygame.Rect( j*16 + l*4 , i*32 + k*4, 4, 4)
+										pygame.draw.rect(self.screen, pygame.Color(self.palette[f]), Mc_pixel)
+
 				pygame.display.flip()
 				self.changed = False
 

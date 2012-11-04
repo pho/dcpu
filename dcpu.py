@@ -432,7 +432,7 @@ class DCPU:
 		self.Y(Y)
 
 	def HWI(self, a):
-		self.devices[a()].hwi(self)
+		self.devices[a].hwi(self)
 
 	def JSR(self, a):
 		self.ram[self.SP()] = self.PC() + 1

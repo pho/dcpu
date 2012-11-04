@@ -1,3 +1,5 @@
+#!/usr/bin/python 
+
 import curses
 from optparse import OptionParser
 from time import sleep
