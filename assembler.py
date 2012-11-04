@@ -148,7 +148,7 @@ def assembly(buf):
 			a = values[i[1]]
 
 		except:
-			#if we find PUSH in a, should warn about a syntax error
+
 			r = re.match("^\[(0x..?.?.?)\]$", i[1])
 			if r:
 				a = values["NEXTW"]
@@ -163,7 +163,8 @@ def assembly(buf):
 					print("WRONG INSTRUCTION:", buf, "(a operand)")
 					sys.exit(-1)
 
-		ret = "{} ".format(hex((((a<<6) + sop)<<5) + 0x00000) )
+
+		ret = "{} ".format(hex((((a<<5) + sop)<<5) + 0x00000) )
 
 		if ap1:
 			ret += "{} ".format(hex(int(ap1, 16)))
